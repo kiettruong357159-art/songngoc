@@ -18,6 +18,7 @@ import {
 import { formatVND, formatDateVN } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { BOOKING_STATUS_META, BookingStatus } from '@/lib/constants';
 
 export default function AdminDashboardPage() {
@@ -43,8 +44,32 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-        Đang tải dữ liệu tổng quan Homestay...
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <Skeleton width="320px" height="2rem" style={{ marginBottom: '0.5rem' }} />
+            <Skeleton width="480px" height="1rem" />
+          </div>
+          <Skeleton width="180px" height="2.5rem" />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="glass-panel" style={{ padding: '1.5rem', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-lg)' }}>
+              <Skeleton width="50%" height="0.875rem" style={{ marginBottom: '0.75rem' }} />
+              <Skeleton width="70%" height="2rem" />
+            </div>
+          ))}
+        </div>
+
+        <div className="glass-panel" style={{ padding: '1.5rem', backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-lg)' }}>
+          <Skeleton width="40%" height="1.25rem" style={{ marginBottom: '1.25rem' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} height="4.5rem" borderRadius="var(--radius-md)" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

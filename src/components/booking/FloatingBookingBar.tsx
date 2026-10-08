@@ -44,6 +44,25 @@ export const FloatingBookingBar: React.FC<FloatingBookingBarProps> = ({
   const [adults, setAdults] = useState(initialAdults);
   const [children, setChildren] = useState(initialChildren);
 
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  const handleCheckInChange = (newVal: string) => {
+    setCheckIn(newVal);
+    if (!checkOut || checkOut <= newVal) {
+      const nextDay = new Date(newVal);
+      nextDay.setDate(nextDay.getDate() + 1);
+      setCheckOut(nextDay.toISOString().split('T')[0]);
+    }
+  };
+
+  const getMinCheckOut = () => {
+    if (!checkIn) return todayStr;
+    const d = new Date(checkIn);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  };
+
   const adultOptions: SelectOption[] = [
     { value: '1', label: '1 Người lớn' },
     { value: '2', label: '2 Người lớn' },
@@ -111,8 +130,8 @@ export const FloatingBookingBar: React.FC<FloatingBookingBarProps> = ({
             name="checkIn"
             type="date"
             value={checkIn}
-            min={new Date().toISOString().split('T')[0]}
-            onChange={(e) => setCheckIn(e.target.value)}
+            min={todayStr}
+            onChange={(e) => handleCheckInChange(e.target.value)}
             required
             style={{
               padding: '0.625rem 0.875rem',
@@ -148,7 +167,7 @@ export const FloatingBookingBar: React.FC<FloatingBookingBarProps> = ({
             name="checkOut"
             type="date"
             value={checkOut}
-            min={checkIn || new Date().toISOString().split('T')[0]}
+            min={getMinCheckOut()}
             onChange={(e) => setCheckOut(e.target.value)}
             required
             style={{
