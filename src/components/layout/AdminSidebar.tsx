@@ -116,14 +116,13 @@ export const AdminSidebar: React.FC = () => {
             width: '38px',
             height: '38px',
             borderRadius: 'var(--radius-md)',
-            backgroundColor: 'var(--color-accent)',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            overflow: 'hidden',
+            flexShrink: 0,
+            boxShadow: 'var(--shadow-sm)',
           }}
         >
-          <Building2 size={22} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/favicon.svg" alt="Song Ngọc Emblem" width={38} height={38} style={{ display: 'block' }} />
         </div>
         <div>
           <div className="serif-heading" style={{ fontSize: '1.2rem', lineHeight: 1.1 }}>

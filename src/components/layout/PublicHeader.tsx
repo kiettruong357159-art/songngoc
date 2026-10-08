@@ -32,32 +32,50 @@ export const PublicHeader: React.FC = () => {
           href="/"
           style={{
             display: 'flex',
-            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.75rem',
             textDecoration: 'none',
           }}
         >
-          <span
-            className="serif-heading"
+          <div
             style={{
-              fontSize: '1.65rem',
-              color: 'var(--color-primary)',
-              letterSpacing: '-0.03em',
-              lineHeight: 1.1,
+              width: '42px',
+              height: '42px',
+              borderRadius: 'var(--radius-md)',
+              overflow: 'hidden',
+              flexShrink: 0,
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
-            Song Ngọc
-          </span>
-          <span
-            style={{
-              fontSize: '0.65rem',
-              fontWeight: 700,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'var(--color-accent)',
-            }}
-          >
-            Homestay Phan Thiết
-          </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/favicon.svg" alt="Song Ngọc Logo" width={42} height={42} style={{ display: 'block' }} />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span
+              className="serif-heading"
+              style={{
+                fontSize: '1.55rem',
+                color: 'var(--color-primary)',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
+                fontWeight: 700,
+              }}
+            >
+              Song Ngọc
+            </span>
+            <span
+              style={{
+                fontSize: '0.625rem',
+                fontWeight: 700,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: 'var(--color-accent)',
+              }}
+            >
+              Homestay Phan Thiết
+            </span>
+          </div>
         </Link>
 
         {/* Desktop Navigation */}

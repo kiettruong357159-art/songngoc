@@ -73,18 +73,16 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div
             style={{
-              width: '54px',
-              height: '54px',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: 'var(--color-primary-light)',
-              color: 'var(--color-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              width: '56px',
+              height: '56px',
+              borderRadius: 'var(--radius-lg)',
+              overflow: 'hidden',
               margin: '0 auto 1rem',
+              boxShadow: 'var(--shadow-md)',
             }}
           >
-            <Shield size={28} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/favicon.svg" alt="Song Ngọc Emblem" width={56} height={56} style={{ display: 'block' }} />
           </div>
           <h1 className="serif-heading" style={{ fontSize: '1.85rem', color: 'var(--color-primary)', marginBottom: '0.25rem' }}>
             Song Ngọc Homestay PMS

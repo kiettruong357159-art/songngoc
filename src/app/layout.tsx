@@ -20,6 +20,15 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: 'Homestay Song Ngọc Phan Thiết | Đặt Phòng Trực Tuyến & Quản Lý PMS',
   description: 'Homestay Song Ngọc Phan Thiết - 307/2 Thủ Khoa Huân, Phú Thủy. Không gian ấm cúng, gần biển Đồi Dương, tiện nghi đầy đủ cho gia đình và nhóm bạn.',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: '/apple-icon.svg', type: 'image/svg+xml' },
+    ],
+  },
 };
 
 export default function RootLayout({

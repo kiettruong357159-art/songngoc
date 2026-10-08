@@ -26,8 +26,14 @@ export const PublicFooter: React.FC = () => {
         >
           {/* Col 1: Brand Info */}
           <div>
-            <div className="serif-heading" style={{ fontSize: '1.75rem', color: '#ffffff', marginBottom: '0.5rem' }}>
-              Homestay Song Ngọc Phan Thiết
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-md)', overflow: 'hidden', flexShrink: 0, boxShadow: 'var(--shadow-sm)' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/favicon.svg" alt="Song Ngọc Logo" width={38} height={38} style={{ display: 'block' }} />
+              </div>
+              <div className="serif-heading" style={{ fontSize: '1.65rem', color: '#ffffff' }}>
+                Homestay Song Ngọc
+              </div>
             </div>
             <p style={{ fontSize: '0.875rem', color: '#9ca3af', lineHeight: 1.6, marginBottom: '1.5rem' }}>
               Không gian nghỉ dưỡng ấm cúng, tọa lạc tại trung tâm thành phố Phan Thiết, cách bãi biển Đồi Dương chỉ vài phút di chuyển. Tiện nghi đầy đủ với bếp nấu hải sản và khu tiệc nướng BBQ.
