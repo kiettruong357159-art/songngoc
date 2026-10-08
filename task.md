@@ -1,0 +1,21 @@
+# Sông Ngọc Hotel Management System - Task Checklist
+
+- [ ] Task 1: Project Scaffolding & Setup (Next.js 15, TypeScript, Vitest)
+- [ ] Task 2: Design Tokens & Global CSS Styling (globals.css, layout.tsx, fonts)
+- [ ] Task 3: Prisma Schema, Database Singleton & Data Seeding (SQLite dev.db, seed.ts)
+- [ ] Task 4: Core Domain Logic & Pricing Calculations (TDD pricing.test.ts)
+- [ ] Task 5: VietQR Generation & System Constants (TDD vietqr.test.ts)
+- [ ] Task 6: Authentication, Cryptographic Sessions & RBAC Guards (TDD auth-rbac.test.ts)
+- [ ] Task 7: Room Availability & Search Logic (TDD room-availability.test.ts)
+- [ ] Task 8: Reusable UI Atoms & Components (CustomSelect, Pagination, Toast, Modal, Badge)
+- [ ] Task 9: Public Storefront - Header, Footer & Landing Page (Boutique Luxury Hero, Floating Bar)
+- [ ] Task 10: Public Storefront - Room List & Room Detail (Availability filter, room cards, slug)
+- [ ] Task 11: Public Storefront - Booking Form, VietQR Deposit & Tracking
+- [ ] Task 12: Admin PMS - Authentication, Session Guard & Layout
+- [ ] Task 13: Admin PMS - Dashboard Overview (KPI cards, room status counts)
+- [ ] Task 14: Admin PMS - Visual Room Grid (PMS Room Rack, floor sections, status transitions)
+- [ ] Task 15: Admin PMS - Check-in & Booking Management (walk-in checkin, paginated table)
+- [ ] Task 16: Admin PMS - Room Services (Minibar, Laundry, service selector)
+- [ ] Task 17: Admin PMS - Check-out, Invoicing & VietQR Settlement
+- [ ] Task 18: Admin PMS - Room Types, Staff & RBAC Management
+- [ ] Task 19: End-to-End System Integration & Production Build Verification
