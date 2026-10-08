@@ -87,10 +87,10 @@ export default function LoginPage() {
             <Shield size={28} />
           </div>
           <h1 className="serif-heading" style={{ fontSize: '1.85rem', color: 'var(--color-primary)', marginBottom: '0.25rem' }}>
-            Sông Ngọc PMS
+            Song Ngọc Homestay PMS
           </h1>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-            Hệ thống Quản lý Khách sạn & Điều hành Lễ tân
+            Hệ thống Quản lý Homestay & Điều hành Lễ tân
           </p>
         </div>
 
@@ -168,7 +168,7 @@ export default function LoginPage() {
               }}
             >
               <ArrowLeft size={14} />
-              <span>Quay lại trang chủ khách sạn</span>
+              <span>Quay lại trang chủ Homestay</span>
             </Link>
           </div>
         </form>

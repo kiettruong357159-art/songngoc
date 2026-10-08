@@ -18,8 +18,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'Khách Sạn Sông Ngọc | Sông Ngọc Hotel Management',
-  description: 'Khách sạn Sông Ngọc sang trọng ven sông - Trải nghiệm nghỉ dưỡng đẳng cấp và thư thái.',
+  title: 'Homestay Song Ngọc Phan Thiết | Đặt Phòng Trực Tuyến & Quản Lý PMS',
+  description: 'Homestay Song Ngọc Phan Thiết - 307/2 Thủ Khoa Huân, Phú Thủy. Không gian ấm cúng, gần biển Đồi Dương, tiện nghi đầy đủ cho gia đình và nhóm bạn.',
 };
 
 export default function RootLayout({

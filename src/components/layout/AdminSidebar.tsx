@@ -126,11 +126,11 @@ export const AdminSidebar: React.FC = () => {
           <Building2 size={22} />
         </div>
         <div>
-          <div className="serif-heading" style={{ fontSize: '1.25rem', lineHeight: 1.1 }}>
-            Sông Ngọc
+          <div className="serif-heading" style={{ fontSize: '1.2rem', lineHeight: 1.1 }}>
+            Song Ngọc
           </div>
-          <div style={{ fontSize: '0.6875rem', color: 'var(--color-accent)', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700 }}>
-            PMS Management
+          <div style={{ fontSize: '0.6875rem', color: 'var(--color-accent)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700 }}>
+            Homestay PMS
           </div>
         </div>
       </div>

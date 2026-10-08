@@ -29,7 +29,7 @@ export const AdminHeader: React.FC = () => {
         <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Hệ Thống Quản Lý</span>
         <span style={{ color: 'var(--color-border)' }}>/</span>
         <span style={{ fontSize: '0.925rem', fontWeight: 600, color: 'var(--color-primary)' }}>
-          Bảng Điều Hành Khách Sạn Sông Ngọc
+          Bảng Điều Hành Homestay Song Ngọc Phan Thiết
         </span>
       </div>
 

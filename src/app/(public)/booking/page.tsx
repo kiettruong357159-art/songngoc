@@ -222,7 +222,7 @@ function BookingFormContent() {
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="0901234567"
+                      placeholder="0962103737"
                       style={{
                         width: '100%',
                         padding: '0.625rem 0.875rem 0.625rem 2.25rem',
@@ -483,7 +483,7 @@ function BookingFormContent() {
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
                 <ShieldCheck size={16} style={{ color: 'var(--color-room-available)' }} />
-                <span>Không phát sinh phí ẩn. Hỗ trợ 24/7 qua 0901.234.567</span>
+                <span>Không phát sinh phí ẩn. Hỗ trợ qua 0962.103.737</span>
               </div>
             </div>
           </div>

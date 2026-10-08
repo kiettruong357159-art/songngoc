@@ -44,7 +44,7 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-        Đang tải dữ liệu tổng quan khách sạn...
+        Đang tải dữ liệu tổng quan Homestay...
       </div>
     );
   }
@@ -72,7 +72,7 @@ export default function AdminDashboardPage() {
       >
         <div>
           <h1 className="serif-heading" style={{ fontSize: '1.85rem', color: 'var(--color-primary)' }}>
-            Tổng Quan Điều Hành Khách Sạn
+            Tổng Quan Điều Hành Homestay Song Ngọc
           </h1>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
             Theo dõi công suất phòng, lượt khách nhận/trả và tình trạng vận hành theo thời gian thực.

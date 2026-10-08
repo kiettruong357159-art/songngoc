@@ -64,7 +64,7 @@ export default async function HomePage() {
             }}
           >
             <Sparkles size={14} />
-            Khách sạn Boutique Đẳng Cấp Ven Sông
+            Homestay Nghỉ Dưỡng Ấm Cúng Tại Phan Thiết
           </div>
 
           <h1
@@ -76,7 +76,7 @@ export default async function HomePage() {
               textShadow: '0 2px 10px rgba(0,0,0,0.3)',
             }}
           >
-            Kỳ Nghỉ Thư Thái Bên Dòng Sông Ngọc
+            Kỳ Nghỉ Thư Thái Tại Homestay Song Ngọc Phan Thiết
           </h1>
 
           <p
@@ -89,7 +89,7 @@ export default async function HomePage() {
               fontWeight: 400,
             }}
           >
-            Đắm mình trong không gian nghỉ dưỡng thanh bình, kiến trúc tinh tế cùng lòng hiếu khách chuẩn mực ngay tại phố cổ.
+            Không gian nghỉ dưỡng ấm cúng, tọa lạc tại 307/2 Thủ Khoa Huân, trung tâm Phan Thiết, chỉ vài phút đến bãi biển Đồi Dương và chợ hải sản tươi sống.
           </p>
         </div>
       </section>
@@ -126,7 +126,7 @@ export default async function HomePage() {
               Các Hạng Phòng Tiêu Biểu
             </h2>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.975rem' }}>
-              Mỗi căn phòng tại Sông Ngọc Hotel là một tác phẩm được chăm chút tỉ mỉ từ ánh sáng, tầm nhìn đến tiện nghi cao cấp.
+              Mỗi căn phòng tại Homestay Song Ngọc được bài trí ấm cúng, tinh tế, đầy đủ tiện nghi cho gia đình và nhóm bạn.
             </p>
           </div>
 
@@ -341,10 +341,10 @@ export default async function HomePage() {
                 <MapPin size={26} />
               </div>
               <h4 className="serif-heading" style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>
-                Vị Trí Đắc Địa Ven Sông
+                Vị Trí Trung Tâm Phan Thiết
               </h4>
               <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-                Cách trung tâm phố cổ chỉ 5 phút đi bộ, tận hưởng không khí trong lành và cảnh sắc thơ mộng.
+                307/2 Thủ Khoa Huân, P. Phú Thủy; gần bãi biển Đồi Dương, bảo tàng Hồ Chí Minh và công viên trung tâm.
               </p>
             </div>
 
@@ -365,10 +365,10 @@ export default async function HomePage() {
                 <Coffee size={26} />
               </div>
               <h4 className="serif-heading" style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>
-                Ẩm Thực & Cà Phê Đặc Sản
+                Bếp Nấu Hải Sản & BBQ Ngoài Trời
               </h4>
               <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-                Bữa sáng buffet phong vị bản địa và quầy trà chiều ngắm hoàng hôn bên bờ sông lung linh.
+                Không gian bếp chung đầy đủ gia vị dụng cụ để bạn tự tay chế biến hải sản tươi sống và tổ chức tiệc BBQ ấm cúng.
               </p>
             </div>
 

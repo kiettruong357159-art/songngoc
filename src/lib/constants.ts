@@ -73,10 +73,19 @@ export const PAYMENT_STATUS = {
   PAID: 'PAID',
 } as const;
 
+export const HOTEL_PROFILE = {
+  name: 'Homestay Song Ngọc Phan Thiết',
+  shortName: 'Song Ngọc Homestay',
+  address: '307/2 Thủ Khoa Huân, Phường Phú Thủy, TP. Phan Thiết, Bình Thuận',
+  phone: '0962 103 737',
+  hotlineFormatted: '0962.103.737',
+  email: 'songngochomestay@gmail.com',
+};
+
 export const DEFAULT_HOTEL_BANK = {
   bankId: 'MBBank',
   accountNo: '888899996666',
-  accountName: 'KHACH SAN SONG NGOC',
+  accountName: 'HOMESTAY SONG NGOC',
 };
 
 export const SERVICE_CATEGORIES = {

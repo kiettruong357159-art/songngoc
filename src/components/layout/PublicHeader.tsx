@@ -56,7 +56,7 @@ export const PublicHeader: React.FC = () => {
               color: 'var(--color-accent)',
             }}
           >
-            Boutique Hotel
+            Homestay Phan Thiết
           </span>
         </Link>
 
@@ -111,7 +111,7 @@ export const PublicHeader: React.FC = () => {
         {/* Header Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <a
-            href="tel:0901234567"
+            href="tel:0962103737"
             style={{
               display: 'none',
               alignItems: 'center',
@@ -136,7 +136,7 @@ export const PublicHeader: React.FC = () => {
             >
               <Phone size={16} />
             </div>
-            <span>0901.234.567</span>
+            <span>0962.103.737</span>
           </a>
 
           <Link
@@ -230,7 +230,7 @@ export const PublicHeader: React.FC = () => {
             Tra cứu đơn đặt phòng
           </Link>
           <a
-            href="tel:0901234567"
+            href="tel:0962103737"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -240,7 +240,7 @@ export const PublicHeader: React.FC = () => {
             }}
           >
             <Phone size={16} />
-            Hotline: 0901.234.567
+            Hotline: 0962.103.737
           </a>
         </div>
       )}

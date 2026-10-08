@@ -149,7 +149,7 @@ export default function AdminRoomsPage() {
             Sơ Đồ Buồng Phòng (Room Rack)
           </h1>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Hiển thị trực quan trạng thái vận hành của toàn bộ phòng khách sạn theo từng tầng.
+            Hiển thị trực quan trạng thái vận hành của toàn bộ phòng homestay theo từng tầng.
           </p>
         </div>
 

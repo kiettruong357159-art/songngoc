@@ -271,7 +271,7 @@ export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
               }}
             >
               <ShieldCheck size={20} style={{ flexShrink: 0 }} />
-              <span>Cam kết giá tốt nhất khi đặt trực tiếp trên website Sông Ngọc Hotel.</span>
+              <span>Cam kết giá tốt nhất khi đặt trực tiếp trên website Homestay Song Ngọc Phan Thiết.</span>
             </div>
 
             <Link

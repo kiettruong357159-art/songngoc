@@ -114,7 +114,7 @@ export default async function RoomsPage({ searchParams }: RoomsPageProps) {
               Không tìm thấy hạng phòng phù hợp với số lượng khách
             </h3>
             <p style={{ color: 'var(--color-text-muted)' }}>
-              Quý khách vui lòng chọn lại số lượng khách hoặc liên hệ hotline 0901.234.567 để được hỗ trợ xếp phòng.
+              Quý khách vui lòng chọn lại số lượng khách hoặc liên hệ hotline 0962.103.737 để được hỗ trợ xếp phòng.
             </p>
           </div>
         ) : (

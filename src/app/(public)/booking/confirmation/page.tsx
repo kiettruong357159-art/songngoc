@@ -59,7 +59,7 @@ function ConfirmationContent() {
             Đặt Phòng Thành Công!
           </h1>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem', marginBottom: '2rem' }}>
-            Cảm ơn quý khách đã tin chọn Khách Sạn Sông Ngọc. Đơn đặt phòng của quý khách đã được ghi nhận trên hệ thống.
+            Cảm ơn quý khách đã tin chọn Homestay Song Ngọc Phan Thiết. Đơn đặt phòng của quý khách đã được ghi nhận trên hệ thống.
           </p>
 
           {/* Booking Code Banner */}
@@ -163,7 +163,7 @@ function ConfirmationContent() {
 
           <div style={{ marginTop: '2.5rem', fontSize: '0.8125rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem' }}>
             <Phone size={14} />
-            <span>Cần hỗ trợ gấp? Gọi ngay hotline lễ tân: <strong>0901.234.567</strong></span>
+            <span>Cần hỗ trợ gấp? Gọi ngay hotline: <strong>0962.103.737</strong></span>
           </div>
         </div>
       </div>

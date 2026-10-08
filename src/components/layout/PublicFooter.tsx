@@ -27,10 +27,10 @@ export const PublicFooter: React.FC = () => {
           {/* Col 1: Brand Info */}
           <div>
             <div className="serif-heading" style={{ fontSize: '1.75rem', color: '#ffffff', marginBottom: '0.5rem' }}>
-              Khách Sạn Sông Ngọc
+              Homestay Song Ngọc Phan Thiết
             </div>
             <p style={{ fontSize: '0.875rem', color: '#9ca3af', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-              Trải nghiệm kỳ nghỉ thư thái với tầm nhìn ôm trọn dòng Sông Ngọc thanh bình. Không gian nghỉ dưỡng đẳng cấp kết hợp dịch vụ hiếu khách chuẩn mực.
+              Không gian nghỉ dưỡng ấm cúng, tọa lạc tại trung tâm thành phố Phan Thiết, cách bãi biển Đồi Dương chỉ vài phút di chuyển. Tiện nghi đầy đủ với bếp nấu hải sản và khu tiệc nướng BBQ.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-accent)', fontSize: '0.875rem', fontWeight: 600 }}>
               <ShieldCheck size={18} />
@@ -46,15 +46,15 @@ export const PublicFooter: React.FC = () => {
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.875rem', fontSize: '0.875rem' }}>
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', color: '#cbd5e1' }}>
                 <MapPin size={18} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }} />
-                <span>Số 128 Đường Ven Sông, Phường Cẩm Nam, TP. Hội An</span>
+                <span>307/2 Thủ Khoa Huân, Phường Phú Thủy, TP. Phan Thiết, Bình Thuận</span>
               </li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#cbd5e1' }}>
                 <Phone size={18} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-                <span>Hotline: 0901.234.567</span>
+                <span>Hotline: 0962.103.737</span>
               </li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#cbd5e1' }}>
                 <Mail size={18} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-                <span>contact@songngoc.vn</span>
+                <span>songngochomestay@gmail.com</span>
               </li>
             </ul>
           </div>
@@ -115,8 +115,8 @@ export const PublicFooter: React.FC = () => {
             color: '#9ca3af',
           }}
         >
-          <div>© 2026 Sông Ngọc Hotel. Bản quyền thuộc về Khách Sạn Sông Ngọc.</div>
-          <div>Hệ thống Quản lý Khách sạn Chuẩn mực & Tinh gọn</div>
+          <div>© 2026 Homestay Song Ngọc Phan Thiết. Bản quyền thuộc về Song Ngọc Homestay.</div>
+          <div>Hệ thống Quản lý Homestay Chuẩn mực & Tinh gọn</div>
         </div>
       </div>
     </footer>
