@@ -288,7 +288,7 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({
                   style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}
                 >
                   <Sparkles size={18} />
-                  <span>Bảo trì xong -> Chuyển sang Cần dọn dẹp</span>
+                  <span>Bảo trì xong → Chuyển sang Cần dọn dẹp</span>
                 </Button>
 
                 <Button
@@ -299,7 +299,7 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({
                   style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}
                 >
                   <CheckCircle size={18} />
-                  <span>Bảo trì xong & Đã sạch -> Sẵn sàng đón khách</span>
+                  <span>Bảo trì xong &amp; Đã sạch → Sẵn sàng đón khách</span>
                 </Button>
               </>
             )}

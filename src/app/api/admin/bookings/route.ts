@@ -125,13 +125,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const pricing = calculateBookingPricing(
-      roomType.basePrice,
-      checkInDate,
-      checkOutDate,
-      adults,
-      roomType.maxAdults
-    );
+    const pricing = calculateBookingPricing({
+      basePrice: roomType.basePrice,
+      nights,
+      weekendPrice: roomType.weekendPrice,
+    });
 
     // Kiểm tra phòng nếu gán phòng cụ thể
     if (roomId) {
@@ -185,7 +183,7 @@ export async function POST(request: NextRequest) {
       // 2. Tạo đơn đặt phòng
       const isCheckedIn = status === 'CHECKED_IN';
       const paymentStatus =
-        depositAmount >= pricing.totalAmount
+        depositAmount >= pricing.totalRoomAmount
           ? 'PAID'
           : depositAmount > 0
           ? 'PARTIALLY_PAID'
@@ -204,7 +202,7 @@ export async function POST(request: NextRequest) {
           adults: Number(adults),
           children: Number(children),
           status,
-          totalRoomAmount: pricing.totalAmount,
+          totalRoomAmount: pricing.totalRoomAmount,
           depositAmount: Number(depositAmount),
           paymentStatus,
           specialRequests: specialRequests || null,

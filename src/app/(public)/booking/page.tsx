@@ -9,7 +9,7 @@ import { useToast } from '@/context/ToastContext';
 import { formatVND } from '@/lib/utils';
 import { calculateNights } from '@/lib/pricing';
 
-export default function BookingPage() {
+function BookingFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
@@ -490,5 +490,13 @@ export default function BookingPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function BookingPage() {
+  return (
+    <React.Suspense fallback={<div style={{ padding: '4rem 1rem', textAlign: 'center' }}>Đang tải thông tin đặt phòng...</div>}>
+      <BookingFormContent />
+    </React.Suspense>
   );
 }

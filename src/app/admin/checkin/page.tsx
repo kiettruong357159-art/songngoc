@@ -158,17 +158,14 @@ function CheckinFormContent() {
   }, [checkIn, checkOut]);
 
   const pricing = useMemo(() => {
-    if (!currentRoomType) return { totalAmount: 0, nights };
-    return calculateBookingPricing(
-      currentRoomType.basePrice,
-      new Date(checkIn),
-      new Date(checkOut),
-      adults,
-      currentRoomType.maxAdults
-    );
-  }, [currentRoomType, checkIn, checkOut, adults, nights]);
+    if (!currentRoomType) return { totalRoomAmount: 0, nights };
+    return calculateBookingPricing({
+      basePrice: currentRoomType.basePrice,
+      nights,
+    });
+  }, [currentRoomType, nights]);
 
-  const remainingAtCheckout = Math.max(0, pricing.totalAmount - depositAmount);
+  const remainingAtCheckout = Math.max(0, pricing.totalRoomAmount - depositAmount);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -590,16 +587,16 @@ function CheckinFormContent() {
                 CÔNG THỨC TÍNH TIỀN PHÒNG
               </div>
               <div style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                {formatVND(currentRoomType?.basePrice || 0)} × {nights} đêm = <strong>{formatVND(pricing.totalAmount)}</strong>
+                {formatVND(currentRoomType?.basePrice || 0)} × {nights} đêm = <strong>{formatVND(pricing.totalRoomAmount)}</strong>
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
-                (Công thức: [Đơn giá ngày thường: {formatVND(currentRoomType?.basePrice || 0)}] × [Số đêm: {nights}] -&gt; {formatVND(pricing.totalAmount)})
+                (Công thức: [Đơn giá ngày thường: {formatVND(currentRoomType?.basePrice || 0)}] × [Số đêm: {nights}] -&gt; {formatVND(pricing.totalRoomAmount)})
               </div>
 
               <div style={{ borderTop: '1px dashed var(--color-border)', marginTop: '0.75rem', paddingTop: '0.75rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                   <span>Tổng tiền phòng:</span>
-                  <strong>{formatVND(pricing.totalAmount)}</strong>
+                  <strong>{formatVND(pricing.totalRoomAmount)}</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', color: 'var(--color-success)' }}>
                   <span>Khách cọc trước:</span>
@@ -650,7 +647,7 @@ function CheckinFormContent() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setDepositAmount(Math.round(pricing.totalAmount / 2))}
+                    onClick={() => setDepositAmount(Math.round(pricing.totalRoomAmount / 2))}
                   >
                     Cọc 50%
                   </Button>
@@ -658,7 +655,7 @@ function CheckinFormContent() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setDepositAmount(pricing.totalAmount)}
+                    onClick={() => setDepositAmount(pricing.totalRoomAmount)}
                   >
                     100%
                   </Button>

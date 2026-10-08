@@ -397,8 +397,7 @@ export default function AdminBookingsPage() {
                 bookings.map((booking) => {
                   const meta = BOOKING_STATUS_META[booking.status] || {
                     label: booking.status,
-                    color: 'var(--color-text)',
-                    bg: 'var(--color-bg)',
+                    badgeType: 'neutral' as const,
                   };
 
                   const nights = calculateNights(new Date(booking.checkIn), new Date(booking.checkOut));
@@ -463,19 +462,9 @@ export default function AdminBookingsPage() {
 
                       {/* Status */}
                       <td style={{ padding: '1rem' }}>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            padding: '0.2rem 0.6rem',
-                            borderRadius: 'var(--radius-full)',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            backgroundColor: meta.bg,
-                            color: meta.color,
-                          }}
-                        >
+                        <Badge variant={meta.badgeType as any} size="sm">
                           {meta.label}
-                        </span>
+                        </Badge>
                       </td>
 
                       {/* Actions */}

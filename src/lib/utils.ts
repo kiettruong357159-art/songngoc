@@ -40,3 +40,6 @@ export function debounce<T extends (...args: any[]) => void>(
     }, wait);
   };
 }
+
+export { calculateNights } from './pricing';
+

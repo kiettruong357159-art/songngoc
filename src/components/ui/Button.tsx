@@ -6,6 +6,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   variant?: 'primary' | 'secondary' | 'accent' | 'outline' | 'danger' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
+  loading?: boolean;
+  fullWidth?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
@@ -15,6 +17,8 @@ export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   size = 'md',
   isLoading = false,
+  loading = false,
+  fullWidth = false,
   leftIcon,
   rightIcon,
   disabled,
@@ -22,6 +26,7 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
+  const effectiveLoading = isLoading || loading;
   const getVariantStyles = (): React.CSSProperties => {
     switch (variant) {
       case 'primary':
@@ -91,16 +96,17 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      disabled={disabled || isLoading}
+      disabled={disabled || effectiveLoading}
       style={{
-        display: 'inline-flex',
+        display: fullWidth ? 'flex' : 'inline-flex',
+        width: fullWidth ? '100%' : undefined,
         alignItems: 'center',
         justifyContent: 'center',
         gap: '0.5rem',
         fontWeight: 600,
         lineHeight: 1.2,
-        cursor: disabled || isLoading ? 'not-allowed' : 'pointer',
-        opacity: disabled || isLoading ? 0.65 : 1,
+        cursor: disabled || effectiveLoading ? 'not-allowed' : 'pointer',
+        opacity: disabled || effectiveLoading ? 0.65 : 1,
         transition: 'all var(--transition-fast)',
         ...getVariantStyles(),
         ...getSizeStyles(),
@@ -109,7 +115,7 @@ export const Button: React.FC<ButtonProps> = ({
       className={`btn-component ${className}`}
       {...props}
     >
-      {isLoading ? (
+      {effectiveLoading ? (
         <span
           style={{
             width: '16px',
@@ -124,7 +130,7 @@ export const Button: React.FC<ButtonProps> = ({
         leftIcon
       )}
       {children}
-      {!isLoading && rightIcon}
+      {!effectiveLoading && rightIcon}
     </button>
   );
 };
