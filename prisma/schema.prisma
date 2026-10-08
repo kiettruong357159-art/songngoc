@@ -1,0 +1,209 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------------------------------
+// 1. PHÂN QUYỀN & TÀI KHOẢN (RBAC & AUTH)
+// ----------------------------------------------------
+model Role {
+  id          String   @id @default(cuid())
+  code        String   @unique // ADMIN, RECEPTIONIST, HOUSEKEEPING, MANAGER
+  name        String   // "Quản trị viên", "Lễ tân", "Buồng phòng"
+  permissions String   // JSON string: '["*"]' hoặc '["rooms:view", "bookings:manage"]'
+  description String?
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id          String    @id @default(cuid())
+  username    String    @unique
+  email       String?   @unique
+  name        String
+  password    String    // Lưu dạng "salt:hash" mã hóa PBKDF2
+  phone       String?
+  roleId      String
+  role        Role      @relation(fields: [roleId], references: [id])
+  isActive    Boolean   @default(true)
+  invoices    Invoice[] // Hóa đơn do nhân viên này lập
+  bookings    Booking[] // Đơn đặt phòng do lễ tân tạo tại quầy
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([roleId])
+}
+
+// ----------------------------------------------------
+// 2. KHÔNG GIAN KHÁCH SẠN & PHÒNG (HOTEL PROPERTY)
+// ----------------------------------------------------
+model Floor {
+  id          String   @id @default(cuid())
+  name        String   // "Tầng 1", "Tầng 2", "Tầng 3", "Tầng Thượng"
+  floorNumber Int      @unique // 1, 2, 3...
+  rooms       Room[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model RoomType {
+  id           String    @id @default(cuid())
+  name         String    // "Phòng Đơn Tiêu Chuẩn", "Phòng Đôi Deluxe", "Phòng Gia Đình VIP"
+  slug         String    @unique // standard-single, deluxe-double, vip-family
+  basePrice    Int       // Giá ngày thường (VNĐ/đêm), ví dụ: 450000
+  weekendPrice Int?      // Giá cuối tuần (VNĐ/đêm)
+  hourlyPrice  Int?      // Giá nghỉ ngắn giờ (ví dụ: 150000 / 2 giờ đầu)
+  maxAdults    Int       @default(2)
+  maxChildren  Int       @default(1)
+  bedType      String    // "1 Giường đôi King", "2 Giường đơn"
+  roomArea     Float     // Diện tích (m2), ví dụ: 28.5
+  amenities    String    // JSON string: '["wifi", "air_con", "tv_smart", "hot_water", "balcony"]'
+  images       String    // JSON string mảng URL ảnh chất lượng cao
+  description  String
+  isActive     Boolean   @default(true)
+  rooms        Room[]
+  bookings     Booking[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Room {
+  id         String    @id @default(cuid())
+  roomNumber String    @unique // "101", "102", "201", "202"
+  floorId    String
+  floor      Floor     @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  roomTypeId String
+  roomType   RoomType  @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+  status     String    @default("AVAILABLE") 
+  note       String?
+  bookings   Booking[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([floorId])
+  @@index([roomTypeId])
+  @@index([status])
+}
+
+// ----------------------------------------------------
+// 3. KHÁCH HÀNG & ĐẶT PHÒNG (GUESTS & BOOKINGS)
+// ----------------------------------------------------
+model Guest {
+  id        String    @id @default(cuid())
+  fullName  String
+  phone     String
+  email     String?
+  idCard    String?
+  address   String?
+  notes     String?
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([phone])
+}
+
+model Booking {
+  id              String           @id @default(cuid())
+  bookingCode     String           @unique // "BK-202610-1001"
+  source          String           @default("ONLINE_WEB") // ONLINE_WEB, DIRECT_COUNTER, PHONE
+  
+  guestId         String
+  guest           Guest            @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  
+  roomTypeId      String
+  roomType        RoomType         @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+  
+  roomId          String?
+  room            Room?            @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  
+  checkIn         DateTime
+  checkOut        DateTime
+  actualCheckIn   DateTime?
+  actualCheckOut  DateTime?
+  adults          Int              @default(1)
+  children        Int              @default(0)
+  
+  status          String           @default("PENDING") 
+  
+  totalRoomAmount Int
+  depositAmount   Int              @default(0)
+  paymentStatus   String           @default("UNPAID") // UNPAID, PARTIALLY_PAID, PAID
+  
+  specialRequests String?
+  createdById     String?
+  createdBy       User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  
+  services        BookingService[]
+  invoice         Invoice?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([bookingCode])
+  @@index([status])
+  @@index([checkIn, checkOut])
+  @@index([roomId])
+  @@index([guestId])
+}
+
+// ----------------------------------------------------
+// 4. DỊCH VỤ & HÓA ĐƠN (SERVICES & INVOICING)
+// ----------------------------------------------------
+model Service {
+  id        String           @id @default(cuid())
+  name      String
+  category  String           // "MINIBAR", "LAUNDRY", "FOOD", "TRANSPORT"
+  price     Int
+  unit      String
+  isActive  Boolean          @default(true)
+  items     BookingService[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model BookingService {
+  id         String   @id @default(cuid())
+  bookingId  String
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  serviceId  String
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  quantity   Int      @default(1)
+  unitPrice  Int
+  totalPrice Int
+  note       String?
+  addedAt    DateTime @default(now())
+
+  @@index([bookingId])
+  @@index([serviceId])
+}
+
+model Invoice {
+  id              String    @id @default(cuid())
+  invoiceCode     String    @unique // "INV-202610-1001"
+  bookingId       String    @unique
+  booking         Booking   @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  
+  roomCharge      Int
+  serviceCharge   Int
+  surcharge       Int       @default(0)
+  surchargeReason String?
+  discount        Int       @default(0)
+  depositDeducted Int       @default(0)
+  finalAmount     Int
+  
+  paymentMethod   String    // CASH, VIETQR, CARD
+  paidAt          DateTime?
+  createdById     String
+  createdBy       User      @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([invoiceCode])
+  @@index([createdAt])
+}
