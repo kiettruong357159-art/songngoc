@@ -27,12 +27,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const cleanPhone = String(phone).trim().replace(/[\s.-]/g, '');
+    if (!/^(0|\+84)[0-9]{9}$/.test(cleanPhone)) {
+      return NextResponse.json(
+        { success: false, error: 'Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số.' },
+        { status: 400 }
+      );
+    }
+
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (checkInStr < todayStr) {
+      return NextResponse.json(
+        { success: false, error: 'Ngày nhận phòng không thể trong quá khứ' },
+        { status: 400 }
+      );
+    }
+
+    if (checkOutStr <= checkInStr) {
+      return NextResponse.json(
+        { success: false, error: 'Ngày trả phòng phải sau ngày nhận phòng' },
+        { status: 400 }
+      );
+    }
+
     const checkIn = new Date(`${checkInStr}T14:00:00Z`);
     const checkOut = new Date(`${checkOutStr}T12:00:00Z`);
 
-    if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime()) || checkOut <= checkIn) {
+    if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime())) {
       return NextResponse.json(
         { success: false, error: 'Ngày nhận/trả phòng không hợp lệ' },
+        { status: 400 }
+      );
+    }
+
+    const nights = calculateNights(checkIn, checkOut);
+    if (nights > 30) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Thời gian đặt phòng tối đa 30 ngày. Vui lòng liên hệ hotline nếu có nhu cầu lưu trú dài hạn.',
+        },
         { status: 400 }
       );
     }
@@ -49,20 +84,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Kiểm tra tình trạng phòng trống trong khoảng ngày
-    const availability = await getRoomTypeAvailability(db, roomTypeId, checkIn, checkOut);
-    if (!availability.isAvailable) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Rất tiếc, hạng phòng này đã được đặt hết trong khoảng thời gian quý khách chọn.',
-        },
-        { status: 400 }
-      );
-    }
-
-    // 3. Tính toán tiền phòng
-    const nights = calculateNights(checkIn, checkOut);
+    // 2. Tính toán tiền phòng & cọc
     const pricing = calculateBookingPricing({
       basePrice: roomType.basePrice,
       weekendPrice: roomType.weekendPrice,
@@ -79,56 +101,66 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 4. Sinh mã Booking: BK-YYYYMM-XXXX
-    const now = new Date();
+    // 3. Sinh mã Booking: BK-YYYYMM-XXXX
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const bookingCode = `BK-${yearMonth}-${randomSuffix}`;
 
-    // 5. Tìm hoặc tạo thông tin khách hàng (Guest)
-    let guest = await db.guest.findFirst({
-      where: { phone },
-    });
+    // 4. Thực hiện toàn bộ quy trình kiểm tra phòng trống & tạo đơn trong 1 transaction an toàn
+    const { booking, guest } = await db.$transaction(async (tx) => {
+      // Re-check phòng trống bên trong transaction để chống race-condition
+      const availability = await getRoomTypeAvailability(tx as any, roomTypeId, checkIn, checkOut);
+      if (!availability.isAvailable) {
+        throw new Error('SLOT_FULL');
+      }
 
-    if (!guest) {
-      guest = await db.guest.create({
+      // Tìm hoặc tạo Guest
+      let currentGuest = await tx.guest.findFirst({
+        where: { phone: cleanPhone },
+      });
+
+      if (!currentGuest) {
+        currentGuest = await tx.guest.create({
+          data: {
+            fullName: fullName.trim(),
+            phone: cleanPhone,
+            email: email ? String(email).trim() : null,
+          },
+        });
+      } else if (email && !currentGuest.email) {
+        await tx.guest.update({
+          where: { id: currentGuest.id },
+          data: { email: String(email).trim() },
+        });
+      }
+
+      // Tạo đơn Booking
+      const createdBooking = await tx.booking.create({
         data: {
-          fullName,
-          phone,
-          email: email || null,
+          bookingCode,
+          source: 'ONLINE_WEB',
+          guestId: currentGuest.id,
+          roomTypeId: roomType.id,
+          checkIn,
+          checkOut,
+          adults: Number(adults) || 1,
+          children: Number(children) || 0,
+          status: 'PENDING',
+          totalRoomAmount,
+          depositAmount,
+          paymentStatus: 'UNPAID',
+          specialRequests: specialRequests || null,
+        },
+        include: {
+          guest: true,
+          roomType: true,
         },
       });
-    } else if (email && !guest.email) {
-      await db.guest.update({
-        where: { id: guest.id },
-        data: { email },
-      });
-    }
 
-    // 6. Tạo đơn Booking
-    const booking = await db.booking.create({
-      data: {
-        bookingCode,
-        source: 'ONLINE_WEB',
-        guestId: guest.id,
-        roomTypeId: roomType.id,
-        checkIn,
-        checkOut,
-        adults: Number(adults) || 1,
-        children: Number(children) || 0,
-        status: 'PENDING',
-        totalRoomAmount,
-        depositAmount,
-        paymentStatus: 'UNPAID',
-        specialRequests: specialRequests || null,
-      },
-      include: {
-        guest: true,
-        roomType: true,
-      },
+      return { booking: createdBooking, guest: currentGuest };
     });
 
-    // 7. Sinh mã VietQR nếu chọn cọc chuyển khoản
+    // 5. Sinh mã VietQR nếu chọn cọc chuyển khoản
     let vietqrUrl = '';
     if (depositAmount > 0) {
       vietqrUrl = generateVietQRUrl({
@@ -155,6 +187,15 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
+    if (error?.message === 'SLOT_FULL') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Rất tiếc, hạng phòng này vừa được khách khác đặt hết trong khoảng thời gian quý khách chọn.',
+        },
+        { status: 400 }
+      );
+    }
     console.error('Error creating booking:', error);
     return NextResponse.json(
       { success: false, error: 'Đã xảy ra lỗi khi tạo đơn đặt phòng' },
