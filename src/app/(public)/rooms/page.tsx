@@ -69,7 +69,7 @@ export default async function RoomsPage({ searchParams }: RoomsPageProps) {
               letterSpacing: '0.15em',
             }}
           >
-            Hệ Thống Phòng Nghỉ Sông Ngọc
+            Hệ Thống Phòng Nghỉ Song Ngọc
           </span>
           <h1
             className="serif-heading"

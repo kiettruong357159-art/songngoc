@@ -1,4 +1,4 @@
-// Sông Ngọc Hotel - Room Availability & Overlap Checking Engine
+// Song Ngọc Homestay - Room Availability & Overlap Checking Engine
 import { PrismaClient } from '@prisma/client';
 
 /**

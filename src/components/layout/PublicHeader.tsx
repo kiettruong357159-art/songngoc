@@ -45,7 +45,7 @@ export const PublicHeader: React.FC = () => {
               lineHeight: 1.1,
             }}
           >
-            Sông Ngọc
+            Song Ngọc
           </span>
           <span
             style={{

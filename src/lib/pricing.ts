@@ -1,4 +1,4 @@
-// Sông Ngọc Hotel Pricing Calculations & Formulas
+// Song Ngọc Homestay Pricing Calculations & Formulas
 import { formatVND } from './utils';
 
 export { formatVND };

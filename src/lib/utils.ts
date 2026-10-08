@@ -1,4 +1,4 @@
-// Sông Ngọc Hotel Utilities
+// Song Ngọc Homestay Utilities
 
 export function formatVND(amount: number): string {
   if (isNaN(amount) || amount === null || amount === undefined) {

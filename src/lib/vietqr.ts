@@ -1,4 +1,4 @@
-// Sông Ngọc VietQR Napas247 Dynamic Generator
+// Song Ngọc VietQR Napas247 Dynamic Generator
 import { DEFAULT_HOTEL_BANK } from './constants';
 
 export { DEFAULT_HOTEL_BANK };

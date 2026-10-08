@@ -10,7 +10,7 @@ function hashPassword(password: string): string {
 }
 
 async function main() {
-  console.log('--- Bắt đầu khởi tạo dữ liệu mẫu Sông Ngọc Hotel ---');
+  console.log('--- Bắt đầu khởi tạo dữ liệu mẫu Song Ngọc Homestay ---');
 
   // 1. Roles
   const adminRole = await prisma.role.upsert({
@@ -125,7 +125,7 @@ async function main() {
     where: { slug: 'deluxe-double' },
     update: {},
     create: {
-      name: 'Phòng Đôi Deluxe View Sông',
+      name: 'Phòng Đôi Deluxe Ban Công',
       slug: 'deluxe-double',
       basePrice: 650000,
       weekendPrice: 750000,
@@ -140,13 +140,13 @@ async function main() {
         'tv_smart',
         'hot_water',
         'balcony',
-        'river_view',
+        'city_view',
       ]),
       images: JSON.stringify([
         'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80',
       ]),
       description:
-        'Phòng đôi Deluxe với ban công hướng thẳng dòng Sông Ngọc thơ mộng, không gian thoáng đãng và phong cách trang nhã.',
+        'Phòng đôi Deluxe với ban công thoáng mát, không gian ấm cúng và phong cách trang nhã tại Phan Thiết.',
     },
   });
 

@@ -1,4 +1,4 @@
-// Sông Ngọc Hotel - Authentication & RBAC Authorization System
+// Song Ngọc Homestay - Authentication & RBAC Authorization System
 import crypto from 'crypto';
 
 export const SESSION_COOKIE_NAME = 'songngoc_session';

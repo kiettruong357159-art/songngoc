@@ -1,4 +1,4 @@
-# Sông Ngọc Hotel Management System - Task Checklist
+# Song Ngọc Homestay Management System - Task Checklist
 
 - [x] Task 1: Project Scaffolding & Setup (Next.js 15, TypeScript, Vitest)
 - [x] Task 2: Design Tokens & Global CSS Styling (globals.css, layout.tsx, fonts)

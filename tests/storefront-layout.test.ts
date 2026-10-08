@@ -7,7 +7,7 @@ describe('Storefront Luxury Hero Spec', () => {
     const headerPath = path.resolve(__dirname, '../src/components/layout/PublicHeader.tsx');
     const barPath = path.resolve(__dirname, '../src/components/booking/FloatingBookingBar.tsx');
 
-    expect(fs.readFileSync(headerPath, 'utf-8')).toContain('Sông Ngọc');
+    expect(fs.readFileSync(headerPath, 'utf-8')).toContain('Song Ngọc');
     expect(fs.readFileSync(barPath, 'utf-8')).toContain('checkIn');
     expect(fs.readFileSync(barPath, 'utf-8')).toContain('checkOut');
   });

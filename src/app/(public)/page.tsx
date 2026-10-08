@@ -178,7 +178,7 @@ export default async function HomePage() {
                       }}
                     >
                       <Badge variant="accent">
-                        {roomType.slug === 'deluxe-double' ? 'View Sông' : 'Best Seller'}
+                        {roomType.slug === 'deluxe-double' ? 'Ban Công' : 'Best Seller'}
                       </Badge>
                     </div>
                   </div>

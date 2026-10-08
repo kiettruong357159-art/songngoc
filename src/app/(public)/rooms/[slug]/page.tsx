@@ -65,7 +65,7 @@ export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
           <div>
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <Badge variant="accent">Hạng phòng cao cấp</Badge>
-              <Badge variant="primary">Hướng Sông Ngọc</Badge>
+              <Badge variant="primary">Không gian thoáng mát</Badge>
             </div>
             <h1 className="serif-heading" style={{ fontSize: '2.5rem', color: 'var(--color-primary)' }}>
               {roomType.name}

@@ -1,4 +1,4 @@
-// Sông Ngọc Hotel Constants & Enums
+// Song Ngọc Homestay Constants & Enums
 
 export const ROOM_STATUS = {
   AVAILABLE: 'AVAILABLE',
