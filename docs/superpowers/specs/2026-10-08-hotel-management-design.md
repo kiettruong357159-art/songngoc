@@ -347,23 +347,35 @@ model Invoice {
 
 ## 6. QUY TRÌNH NGHIỆP VỤ CHI TIẾT (BUSINESS FLOWS)
 
-### 6.1. Luồng Khách đặt phòng trực tuyến & Kiểm tra phòng trống
-1. **Khách truy cập**: Xem danh sách phòng tại `/rooms`, lọc theo số người hoặc giá.
-2. **Kiểm tra phòng trống**:
-   * Người dùng chọn ngày nhận phòng (`checkIn`) và ngày trả phòng (`checkOut`).
-   * Hệ thống tính số phòng khả dụng cho từng loại phòng:
-     ```text
-     Số phòng khả dụng = Tổng số phòng của loại phòng - Số đơn đã giữ chỗ/đang ở trong khoảng ngày chọn
-     Ví dụ: Loại phòng Deluxe có 5 phòng (101, 102, 103, 104, 105).
-     Trong khoảng ngày 10/10 -> 12/10 đã có 3 đơn CONFIRMED/CHECKED_IN.
-     -> Số phòng khả dụng = 5 - 3 = 2 phòng.
-     ```
-3. **Tạo Booking & Thanh toán**:
-   * Khách điền Họ tên, SĐT, Email, Yêu cầu đặc biệt.
-   * Chọn hình thức: Thanh toán tại quầy khi nhận phòng hoặc Chuyển khoản VietQR.
-   * Sinh mã `BK-202610-1001`. Nếu chọn cọc chuyển khoản, màn hình hiển thị mã VietQR động:
-     `https://img.vietqr.io/image/{bankId}-{accountNo}-compact2.png?amount={deposit}&addInfo={bookingCode}&accountName={accountName}`.
-   * Khách lưu mã để tra cứu tại `/track`.
+### 6.1. Giao diện Khách hàng & Luồng Đặt phòng (Storefront Booking Engine - Phương án A)
+* **Định hướng giao diện đã phê duyệt: Phương án A (Boutique Luxury Hero & Floating Booking Bar)**:
+  1. **Header**: Logo Sông Ngọc Hotel (font `Playfair Display`), Menu điều hướng (Trang chủ, Phòng nghỉ, Tiện ích, Tra cứu đơn), Hotline liên hệ nhanh.
+  2. **Hero Banner**: Chiều cao 65vh, hình ảnh chất lượng cao kèm lớp phủ gradient `var(--color-primary)` sang trọng, slogan: *"Kỳ Nghỉ Thư Thái Bên Dòng Sông Ngọc"*.
+  3. **Floating Booking Bar**: Thanh tìm kiếm đặt phòng nổi bật ghim giữa Hero và nội dung chính, bóng đổ `var(--shadow-lg)`:
+     * Ô chọn khoảng ngày nhận/trả phòng (`DateRangePicker`).
+     * Dropdown chọn số lượng người lớn và trẻ em (`CustomSelect`).
+     * Nút bấm *"Tìm phòng trống"* màu `var(--color-primary)` với hiệu ứng hover.
+  4. **Lưới phòng nổi bật (Featured Room Grid)**:
+     * Card phòng 2-3 cột, bo góc `var(--radius-md)`, ảnh chất lượng cao.
+     * Huy hiệu tag (Best Seller, View Sông, Ban công) sử dụng màu `var(--color-accent)`.
+     * Hiển thị tiện ích cốt lõi (diện tích m², loại giường, ăn sáng, wifi).
+     * Mức giá hiển thị nổi bật dạng `450.000₫/đêm` và nút *"Đặt phòng ngay"*.
+
+* **Luồng Kiểm tra phòng trống & Đặt phòng**:
+  1. **Kiểm tra phòng trống**:
+     * Hệ thống tính số phòng khả dụng cho từng loại phòng:
+       ```text
+       Số phòng khả dụng = Tổng số phòng của loại phòng - Số đơn đã giữ chỗ/đang ở trong khoảng ngày chọn
+       Ví dụ: Loại phòng Deluxe có 5 phòng (101, 102, 103, 104, 105).
+       Trong khoảng ngày 10/10 -> 12/10 đã có 3 đơn CONFIRMED/CHECKED_IN.
+       -> Số phòng khả dụng = 5 - 3 = 2 phòng.
+       ```
+  2. **Tạo Booking & Thanh toán**:
+     * Khách điền Họ tên, SĐT, Email, Yêu cầu đặc biệt.
+     * Chọn hình thức: Thanh toán tại quầy khi nhận phòng hoặc Chuyển khoản VietQR.
+     * Sinh mã `BK-202610-1001`. Nếu chọn cọc chuyển khoản, màn hình hiển thị mã VietQR động:
+       `https://img.vietqr.io/image/{bankId}-{accountNo}-compact2.png?amount={deposit}&addInfo={bookingCode}&accountName={accountName}`.
+     * Khách lưu mã để tra cứu tại trang `/track`.
 
 ### 6.2. Luồng Sơ đồ phòng trực quan (Visual Grid PMS)
 * Màn hình `/admin/rooms` chia danh sách phòng theo từng `Floor` (Tầng 1, Tầng 2, Tầng 3).
