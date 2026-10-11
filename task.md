@@ -82,4 +82,9 @@
 - [x] Task 60: Tích hợp `RoomImageCarousel` vào trang chi tiết hạng phòng `src/app/(public)/rooms/[slug]/page.tsx` thay thế layout grid tĩnh cũ.
 - [x] Task 61: Viết kiểm thử `tests/room-image-carousel.test.ts` và chạy toàn diện `npm run verify` (`check:rules`, `check:types`, `vitest run`).
 
+## Phase 11: Chuẩn hóa Toàn diện Thanh Cuộn Hệ thống (System-Wide Custom Scrollbar)
+- [x] Task 62: Bổ sung CSS Tokens & Global Custom Scrollbar trong `globals.css` (chiều rộng mảnh 6px, bo góc pill, màu tinh tế hài hòa brand, triệt tiêu nút mũi tên thô kệch mặc định của OS).
+- [x] Task 63: Tinh chỉnh giao diện cuộn Dark Theme riêng cho Admin Sidebar (`.admin-sidebar nav`) và Modal Dialogs để tiệp màu với nền xanh ngọc `#0a3036`.
+- [x] Task 64: Viết kiểm thử `tests/system-scrollbar.test.ts` và chạy nghiệm thu toàn diện `npm run verify`.
+
 

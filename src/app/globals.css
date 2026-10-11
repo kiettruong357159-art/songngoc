@@ -65,6 +65,48 @@
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Scrollbar Tokens (Boutique Luxury Aesthetic) */
+  --scrollbar-width: 6px;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(15, 91, 102, 0.28);
+  --scrollbar-thumb-hover: rgba(15, 91, 102, 0.52);
+}
+
+/* System-Wide Custom Scrollbar (Toàn Hệ Thống) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-width);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+  transition: background-color var(--transition-fast);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Triệt tiêu 2 nút mũi tên thô kệch mặc định của hệ điều hành Windows */
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* CSS Reset & Box Sizing */
@@ -340,6 +382,41 @@ input, textarea, select {
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Admin Sidebar Dark Scrollbar (Tông Kính Mờ Tiệp Nền Tối) */
+.admin-sidebar,
+.admin-sidebar nav,
+.admin-sidebar-nav {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar,
+.admin-sidebar nav::-webkit-scrollbar,
+.admin-sidebar-nav::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track,
+.admin-sidebar nav::-webkit-scrollbar-track,
+.admin-sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb,
+.admin-sidebar nav::-webkit-scrollbar-thumb,
+.admin-sidebar-nav::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-full);
+  transition: background-color var(--transition-fast);
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-sidebar nav::-webkit-scrollbar-thumb:hover,
+.admin-sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
 .admin-sidebar-header {
   padding: 1.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -421,15 +498,25 @@ input, textarea, select {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 .table-responsive::-webkit-scrollbar {
-  height: 6px;
+  height: 5px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .table-responsive::-webkit-scrollbar-thumb {
-  background: var(--color-border-dark);
-  border-radius: 9999px;
+  background-color: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 /* Responsive Form Input Pair & Booking Grid */

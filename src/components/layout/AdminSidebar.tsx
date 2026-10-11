@@ -175,6 +175,7 @@ export const AdminSidebar: React.FC = () => {
 
         {/* Nav List */}
         <nav
+          className="admin-sidebar-nav"
           style={{
             padding: '1rem 0.75rem',
             display: 'flex',
