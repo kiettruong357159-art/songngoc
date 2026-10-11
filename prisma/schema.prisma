@@ -1,6 +1,7 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -90,6 +91,8 @@ model Room {
   @@index([floorId])
   @@index([roomTypeId])
   @@index([status])
+  @@index([roomTypeId, status])
+  @@index([floorId, status])
 }
 
 // ----------------------------------------------------
@@ -153,6 +156,8 @@ model Booking {
   @@index([guestId])
   @@index([roomTypeId, status, checkIn, checkOut])
   @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([paymentStatus, createdAt])
 }
 
 // ----------------------------------------------------
@@ -210,4 +215,5 @@ model Invoice {
 
   @@index([invoiceCode])
   @@index([createdAt])
+  @@index([paymentMethod, createdAt])
 }
