@@ -16,12 +16,60 @@ export async function GET(request: NextRequest) {
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    // 1. Thống kê trạng thái phòng
-    const allRooms = await db.room.findMany({
-      select: { status: true },
-    });
+    // Chạy song song toàn bộ các truy vấn thống kê bằng SQL Aggregations trực tiếp tại CSDL (triệt tiêu load RAM)
+    const [
+      roomStatusGroups,
+      totalRooms,
+      todayCheckInsCount,
+      todayCheckOutsCount,
+      revenueAggregate,
+      recentBookings,
+    ] = await Promise.all([
+      // 1. Thống kê số lượng phòng theo trạng thái bằng SQL groupBy
+      db.room.groupBy({
+        by: ['status'],
+        _count: { status: true },
+      }),
 
-    const totalRooms = allRooms.length;
+      // 2. Tổng số phòng
+      db.room.count(),
+
+      // 3. Đếm check-in hôm nay
+      db.booking.count({
+        where: {
+          checkIn: { gte: todayStart, lte: todayEnd },
+          status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
+        },
+      }),
+
+      // 4. Đếm check-out hôm nay
+      db.booking.count({
+        where: {
+          checkOut: { gte: todayStart, lte: todayEnd },
+          status: { in: ['CHECKED_IN', 'CHECKED_OUT'] },
+        },
+      }),
+
+      // 5. Tính tổng doanh thu hôm nay từ hóa đơn bằng SQL aggregate (_sum)
+      db.invoice.aggregate({
+        _sum: { finalAmount: true },
+        where: {
+          createdAt: { gte: todayStart, lte: todayEnd },
+        },
+      }),
+
+      // 6. 5 đơn đặt phòng gần nhất
+      db.booking.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          guest: true,
+          roomType: true,
+          room: true,
+        },
+      }),
+    ]);
+
     const statusCounts = {
       AVAILABLE: 0,
       OCCUPIED: 0,
@@ -30,52 +78,16 @@ export async function GET(request: NextRequest) {
       MAINTENANCE: 0,
     };
 
-    allRooms.forEach((r) => {
-      if (r.status in statusCounts) {
-        statusCounts[r.status as keyof typeof statusCounts]++;
+    for (const group of roomStatusGroups) {
+      if (group.status in statusCounts) {
+        statusCounts[group.status as keyof typeof statusCounts] = group._count.status;
       }
-    });
+    }
 
     const activeRooms = totalRooms - statusCounts.MAINTENANCE;
     const occupancyRate =
       activeRooms > 0 ? Math.round((statusCounts.OCCUPIED / activeRooms) * 100) : 0;
-
-    // 2. Check-in hôm nay
-    const todayCheckInsCount = await db.booking.count({
-      where: {
-        checkIn: { gte: todayStart, lte: todayEnd },
-        status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
-      },
-    });
-
-    // 3. Check-out hôm nay
-    const todayCheckOutsCount = await db.booking.count({
-      where: {
-        checkOut: { gte: todayStart, lte: todayEnd },
-        status: { in: ['CHECKED_IN', 'CHECKED_OUT'] },
-      },
-    });
-
-    // 4. Doanh thu hôm nay từ hóa đơn
-    const todayInvoices = await db.invoice.findMany({
-      where: {
-        createdAt: { gte: todayStart, lte: todayEnd },
-      },
-      select: { finalAmount: true },
-    });
-
-    const todayRevenue = todayInvoices.reduce((sum, inv) => sum + inv.finalAmount, 0);
-
-    // 5. 5 đơn đặt phòng gần nhất
-    const recentBookings = await db.booking.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        guest: true,
-        roomType: true,
-        room: true,
-      },
-    });
+    const todayRevenue = revenueAggregate._sum.finalAmount || 0;
 
     return NextResponse.json({
       success: true,
