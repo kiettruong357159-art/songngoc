@@ -38,3 +38,7 @@ prisma/dev.db-shm
 
 # superpowers scratch
 .superpowers/sdd/
+
+# vercel
+.vercel
+

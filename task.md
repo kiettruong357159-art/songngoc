@@ -1,5 +1,6 @@
 # Song Ngọc Homestay Management System - Task Checklist
 
+## Phase 1: Core System Features (Completed)
 - [x] Task 1: Project Scaffolding & Setup (Next.js 15, TypeScript, Vitest)
 - [x] Task 2: Design Tokens & Global CSS Styling (globals.css, layout.tsx, fonts)
 - [x] Task 3: Prisma Schema, Database Singleton & Data Seeding (SQLite dev.db, seed.ts)
@@ -19,3 +20,11 @@
 - [x] Task 17: Admin PMS - Check-out, Invoicing & VietQR Settlement
 - [x] Task 18: Admin PMS - Room Types, Staff & RBAC Management
 - [x] Task 19: End-to-End System Integration & Production Build Verification
+
+## Phase 2: Enterprise Optimization (Theo PROJECT_RULES_TEMPLATE.md)
+- [x] Task 20: CSDL & Hạ tầng Neon Serverless (Direct URL & Composite Indexes)
+- [x] Task 21: Tối ưu triệt để Dashboard bằng SQL Aggregations (Triệt tiêu load RAM)
+- [x] Task 22: Envelopes chuẩn hóa, Type Safety & Query Deduplication với React.cache()
+- [x] Task 23: Chốt chặn Anti-double submit & Edge CDN Caching Headers
+- [x] Task 24: UX Resilience - Global 0ms Skeleton Shimmer & Safe Error Boundary
+- [x] Task 25: Kiểm thử toàn diện, Type Check & Nghiệm thu sản phẩm
