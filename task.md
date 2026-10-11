@@ -87,4 +87,8 @@
 - [x] Task 63: Tinh chỉnh giao diện cuộn Dark Theme riêng cho Admin Sidebar (`.admin-sidebar nav`) và Modal Dialogs để tiệp màu với nền xanh ngọc `#0a3036`.
 - [x] Task 64: Viết kiểm thử `tests/system-scrollbar.test.ts` và chạy nghiệm thu toàn diện `npm run verify`.
 
+## Phase 12: Tối ưu Không gian Sidebar - Bỏ Khối Thông tin Người dùng Trùng lặp
+- [x] Task 65: Xóa bỏ khối footer "Đang đăng nhập / Vai trò" ở cuối `AdminSidebar.tsx` (thông tin này đã có đầy đủ ở góc trên bên phải của `AdminHeader.tsx`).
+- [x] Task 66: Chạy kiểm thử xác nhận `npm run verify` (`check:rules`, `check:types`, `vitest run`).
+
 

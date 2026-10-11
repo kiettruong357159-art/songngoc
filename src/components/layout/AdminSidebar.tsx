@@ -236,22 +236,6 @@ export const AdminSidebar: React.FC = () => {
             </div>
           ))}
         </nav>
-
-        {/* User Status Footer */}
-        <div
-          style={{
-            padding: '1rem 1.25rem',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-            backgroundColor: 'rgba(0, 0, 0, 0.2)',
-            fontSize: '0.8125rem',
-          }}
-        >
-          <div style={{ color: '#94a3b8' }}>Đang đăng nhập:</div>
-          <div style={{ fontWeight: 600, color: '#ffffff' }}>{user?.name || user?.username || 'Nhân viên'}</div>
-          <div style={{ color: 'var(--color-accent)', fontSize: '0.75rem', marginTop: '2px' }}>
-            Vai trò: {user?.role || 'Lễ tân'}
-          </div>
-        </div>
       </aside>
     </>
   );
