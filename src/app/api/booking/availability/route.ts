@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getRoomTypeAvailability } from '@/lib/availability';
 
+const EDGE_CACHE_HEADERS = {
+  'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+};
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -22,7 +26,10 @@ export async function GET(request: NextRequest) {
 
     if (roomTypeId) {
       const result = await getRoomTypeAvailability(db, roomTypeId, checkIn, checkOut);
-      return NextResponse.json({ success: true, data: result });
+      return NextResponse.json(
+        { success: true, data: result },
+        { headers: EDGE_CACHE_HEADERS }
+      );
     }
 
     // Nếu không truyền roomTypeId, trả về tình trạng phòng của tất cả RoomTypes
@@ -41,7 +48,10 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    return NextResponse.json({ success: true, data: results });
+    return NextResponse.json(
+      { success: true, data: results },
+      { headers: EDGE_CACHE_HEADERS }
+    );
   } catch (error: any) {
     console.error('Availability check error:', error);
     return NextResponse.json(

@@ -94,6 +94,7 @@ function BookingFormContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
 
     if (!fullName.trim() || !phone.trim() || !selectedRoomTypeId) {
       toast.error('Vui lòng điền họ tên, số điện thoại và chọn hạng phòng');
