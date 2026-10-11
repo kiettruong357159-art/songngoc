@@ -212,7 +212,7 @@ function BookingFormContent() {
               </div>
 
               {/* Phone & Email */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="responsive-input-pair">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.375rem' }}>
                     Số điện thoại <span style={{ color: '#ef4444' }}>*</span>
@@ -277,7 +277,7 @@ function BookingFormContent() {
               </div>
 
               {/* Dates */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="responsive-input-pair">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.375rem' }}>
                     Nhận phòng (14:00)
@@ -318,7 +318,7 @@ function BookingFormContent() {
               </div>
 
               {/* Guests */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="responsive-input-pair">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.375rem' }}>
                     Người lớn

@@ -102,12 +102,7 @@ export const FloatingBookingBar: React.FC<FloatingBookingBarProps> = ({
     >
       <form
         onSubmit={handleSearch}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1.25rem',
-          alignItems: 'flex-end',
-        }}
+        className="floating-booking-grid"
       >
         {/* Ngày nhận phòng */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
@@ -230,7 +225,7 @@ export const FloatingBookingBar: React.FC<FloatingBookingBarProps> = ({
         </div>
 
         {/* Nút Tìm phòng */}
-        <div>
+        <div className="floating-booking-submit">
           <Button
             type="submit"
             variant="primary"
@@ -238,7 +233,7 @@ export const FloatingBookingBar: React.FC<FloatingBookingBarProps> = ({
             leftIcon={<Search size={18} />}
             style={{
               width: '100%',
-              height: '42px',
+              height: '46px',
               backgroundColor: 'var(--color-primary)',
               borderRadius: 'var(--radius-md)',
               fontWeight: 700,

@@ -116,7 +116,7 @@ export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
               key={idx}
               style={{
                 position: 'relative',
-                height: '380px',
+                height: 'clamp(260px, 36vw, 380px)',
                 borderRadius: 'var(--radius-md)',
                 overflow: 'hidden',
               }}

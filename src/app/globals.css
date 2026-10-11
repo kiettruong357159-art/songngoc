@@ -420,3 +420,42 @@ input, textarea, select {
   background: var(--color-border-dark);
   border-radius: 9999px;
 }
+
+/* Responsive Form Input Pair & Booking Grid */
+.responsive-input-pair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-input-pair {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.floating-booking-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+@media (min-width: 640px) {
+  .floating-booking-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .floating-booking-submit {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .floating-booking-grid {
+    grid-template-columns: 1.25fr 1.25fr 1fr 1fr 1.35fr;
+    gap: 1.25rem;
+  }
+  .floating-booking-submit {
+    grid-column: auto;
+  }
+}
