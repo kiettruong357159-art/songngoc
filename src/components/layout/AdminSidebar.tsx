@@ -12,9 +12,10 @@ import {
   Receipt,
   BedDouble,
   Users,
-  Building2,
+  X,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useAdminUI } from '@/context/AdminUIContext';
 import { hasPermission } from '@/lib/auth';
 
 interface NavItem {
@@ -27,6 +28,7 @@ interface NavItem {
 export const AdminSidebar: React.FC = () => {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { sidebarOpen, setSidebarOpen } = useAdminUI();
 
   const navItems: NavItem[] = [
     {
@@ -87,108 +89,111 @@ export const AdminSidebar: React.FC = () => {
   });
 
   return (
-    <aside
-      style={{
-        width: '260px',
-        backgroundColor: '#0a3036',
-        color: '#ffffff',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        position: 'sticky',
-        top: 0,
-        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-        zIndex: 50,
-      }}
-    >
-      {/* Brand Header */}
-      <div
-        style={{
-          padding: '1.5rem',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-        }}
-      >
+    <>
+      {/* Mobile/Tablet Drawer Backdrop */}
+      {sidebarOpen && (
         <div
-          style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: 'var(--radius-md)',
-            overflow: 'hidden',
-            flexShrink: 0,
-            boxShadow: 'var(--shadow-sm)',
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/favicon.svg" alt="Song Ngọc Emblem" width={38} height={38} style={{ display: 'block' }} />
-        </div>
-        <div>
-          <div className="serif-heading" style={{ fontSize: '1.2rem', lineHeight: 1.1 }}>
-            Song Ngọc
-          </div>
-          <div style={{ fontSize: '0.6875rem', color: 'var(--color-accent)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700 }}>
-            Homestay PMS
-          </div>
-        </div>
-      </div>
+          className="admin-sidebar-backdrop"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
-      {/* Nav List */}
-      <nav
-        style={{
-          padding: '1rem 0.75rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.25rem',
-          overflowY: 'auto',
-          flex: 1,
-        }}
-      >
-        {visibleItems.map((item) => {
-          const isActive = pathname === item.href;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
+      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
+        {/* Brand Header */}
+        <div className="admin-sidebar-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                padding: '0.6875rem 0.875rem',
+                width: '38px',
+                height: '38px',
                 borderRadius: 'var(--radius-md)',
-                backgroundColor: isActive ? 'var(--color-primary)' : 'transparent',
-                color: isActive ? '#ffffff' : '#cbd5e1',
-                fontSize: '0.875rem',
-                fontWeight: isActive ? 600 : 500,
-                textDecoration: 'none',
-                transition: 'all var(--transition-fast)',
+                overflow: 'hidden',
+                flexShrink: 0,
+                boxShadow: 'var(--shadow-sm)',
               }}
             >
-              <span style={{ color: isActive ? 'var(--color-accent)' : '#94a3b8' }}>{item.icon}</span>
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/favicon.svg" alt="Song Ngọc Emblem" width={38} height={38} style={{ display: 'block' }} />
+            </div>
+            <div>
+              <div className="serif-heading" style={{ fontSize: '1.2rem', lineHeight: 1.1 }}>
+                Song Ngọc
+              </div>
+              <div style={{ fontSize: '0.6875rem', color: 'var(--color-accent)', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700 }}>
+                Homestay PMS
+              </div>
+            </div>
+          </div>
 
-      {/* User Status Footer */}
-      <div
-        style={{
-          padding: '1rem 1.25rem',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          backgroundColor: 'rgba(0, 0, 0, 0.2)',
-          fontSize: '0.8125rem',
-        }}
-      >
-        <div style={{ color: '#94a3b8' }}>Đang đăng nhập:</div>
-        <div style={{ fontWeight: 600, color: '#ffffff' }}>{user?.name || user?.username || 'Nhân viên'}</div>
-        <div style={{ color: 'var(--color-accent)', fontSize: '0.75rem', marginTop: '2px' }}>
-          Vai trò: {user?.role || 'Lễ tân'}
+          {/* Close button on Mobile/Tablet */}
+          <button
+            type="button"
+            className="admin-sidebar-close"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Đóng thanh điều hướng"
+          >
+            <X size={20} />
+          </button>
         </div>
-      </div>
-    </aside>
+
+        {/* Nav List */}
+        <nav
+          style={{
+            padding: '1rem 0.75rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem',
+            overflowY: 'auto',
+            flex: 1,
+          }}
+        >
+          {visibleItems.map((item) => {
+            const isActive = pathname === item.href;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setSidebarOpen(false)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.6875rem 0.875rem',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: isActive ? 'var(--color-primary)' : 'transparent',
+                  color: isActive ? '#ffffff' : '#cbd5e1',
+                  fontSize: '0.875rem',
+                  fontWeight: isActive ? 600 : 500,
+                  textDecoration: 'none',
+                  transition: 'all var(--transition-fast)',
+                }}
+              >
+                <span style={{ color: isActive ? 'var(--color-accent)' : '#94a3b8' }}>{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* User Status Footer */}
+        <div
+          style={{
+            padding: '1rem 1.25rem',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+            fontSize: '0.8125rem',
+          }}
+        >
+          <div style={{ color: '#94a3b8' }}>Đang đăng nhập:</div>
+          <div style={{ fontWeight: 600, color: '#ffffff' }}>{user?.name || user?.username || 'Nhân viên'}</div>
+          <div style={{ color: 'var(--color-accent)', fontSize: '0.75rem', marginTop: '2px' }}>
+            Vai trò: {user?.role || 'Lễ tân'}
+          </div>
+        </div>
+      </aside>
+    </>
   );
 };
 

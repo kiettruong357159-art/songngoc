@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { verifySessionToken, SESSION_COOKIE_NAME } from '@/lib/auth';
 import { AuthProvider } from '@/context/AuthContext';
+import { AdminUIProvider } from '@/context/AdminUIContext';
 import { AdminSidebar } from '@/components/layout/AdminSidebar';
 import { AdminHeader } from '@/components/layout/AdminHeader';
 
@@ -25,13 +26,15 @@ export default async function AdminLayout({
 
   return (
     <AuthProvider>
-      <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--color-bg)' }}>
-        <AdminSidebar />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          <AdminHeader />
-          <main style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>{children}</main>
+      <AdminUIProvider>
+        <div className="admin-layout">
+          <AdminSidebar />
+          <div className="admin-body">
+            <AdminHeader />
+            <main className="admin-main">{children}</main>
+          </div>
         </div>
-      </div>
+      </AdminUIProvider>
     </AuthProvider>
   );
 }
