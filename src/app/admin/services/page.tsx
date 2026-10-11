@@ -299,57 +299,6 @@ export default function AdminServicesPage() {
         </div>
       </div>
 
-      {/* Category Pills (Quick Filter) */}
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-        <button
-          type="button"
-          onClick={() => setCategoryFilter('ALL')}
-          style={{
-            padding: '0.35rem 0.75rem',
-            borderRadius: 'var(--radius-full)',
-            fontSize: '0.8125rem',
-            fontWeight: 600,
-            backgroundColor: categoryFilter === 'ALL' ? 'var(--color-primary)' : 'var(--color-surface)',
-            color: categoryFilter === 'ALL' ? '#ffffff' : 'var(--color-text)',
-            border: '1px solid var(--color-border)',
-            cursor: 'pointer',
-            transition: 'all var(--transition-fast)',
-          }}
-        >
-          Tất cả ({services.length})
-        </button>
-
-        {categories.map((cat) => {
-          const catKey = cat.code;
-          const label = cat.name;
-          const count = services.filter((s) => s.category === catKey).length;
-          return (
-            <button
-              key={catKey}
-              type="button"
-              onClick={() => setCategoryFilter(catKey)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                padding: '0.35rem 0.75rem',
-                borderRadius: 'var(--radius-full)',
-                fontSize: '0.8125rem',
-                fontWeight: 600,
-                backgroundColor: categoryFilter === catKey ? 'var(--color-primary)' : 'var(--color-surface)',
-                color: categoryFilter === catKey ? '#ffffff' : 'var(--color-text)',
-                border: '1px solid var(--color-border)',
-                cursor: 'pointer',
-                transition: 'all var(--transition-fast)',
-              }}
-            >
-              {getCategoryIcon(catKey)}
-              <span>{label} ({count})</span>
-            </button>
-          );
-        })}
-      </div>
-
       {/* Standard Table Card */}
       <div className="admin-table-card">
         <div className="table-responsive">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   RefreshCw, 
   AlertCircle,
@@ -15,6 +15,7 @@ import QuickActionModal from '@/components/pms/QuickActionModal';
 import FloorModal from '@/components/admin/FloorModal';
 import RoomModal from '@/components/admin/RoomModal';
 import Modal from '@/components/ui/Modal';
+import CustomSelect, { SelectOption } from '@/components/ui/CustomSelect';
 import { RoomStatus, ROOM_STATUS_META } from '@/lib/constants';
 import { useToast } from '@/context/ToastContext';
 import Button from '@/components/ui/Button';
@@ -246,6 +247,15 @@ export default function AdminRoomsPage() {
     })
     .filter((floor) => floor.rooms.length > 0 || selectedFloorId !== 'ALL');
 
+  // Options cho bộ lọc Tầng (hỗ trợ scale tối ưu khi có nhiều tầng)
+  const floorOptions: SelectOption[] = useMemo(() => [
+    { value: 'ALL', label: `Tất cả các tầng (${allRoomsFlat.length} phòng)` },
+    ...floors.map((fl) => ({
+      value: fl.id,
+      label: `${fl.name} (${fl.rooms.length} phòng)`,
+    })),
+  ], [floors, allRoomsFlat.length]);
+
   return (
     <div>
       {/* Standard Action Header */}
@@ -285,7 +295,7 @@ export default function AdminRoomsPage() {
         </div>
       </div>
 
-      {/* Filter and Control Bar */}
+      {/* Filter and Control Bar (Chuẩn hóa chống vỡ layout khi nhiều tầng & data lớn) */}
       <div
         className="admin-filter-card"
         style={{
@@ -295,84 +305,55 @@ export default function AdminRoomsPage() {
           marginBottom: '2rem',
         }}
       >
-        {/* Top Controls: Search and Floor Tabs */}
+        {/* Top Controls: Search and Floor Dropdown */}
         <div
           style={{
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '1rem',
+            gap: '0.875rem',
             width: '100%',
           }}
         >
-          {/* Floor selection tabs */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)', marginRight: '0.25rem' }}>
-              Tầng:
-            </span>
-            <button
-              onClick={() => setSelectedFloorId('ALL')}
-              style={{
-                padding: '0.4rem 0.85rem',
-                borderRadius: 'var(--radius-full)',
-                fontSize: '0.8125rem',
-                fontWeight: 600,
-                backgroundColor: selectedFloorId === 'ALL' ? 'var(--color-primary)' : 'var(--color-bg)',
-                color: selectedFloorId === 'ALL' ? '#ffffff' : 'var(--color-text)',
-                border: '1px solid var(--color-border)',
-                cursor: 'pointer',
-                transition: 'all var(--transition-fast)',
-              }}
-            >
-              Tất cả các tầng
-            </button>
-            {floors.map((fl) => (
-              <button
-                key={fl.id}
-                onClick={() => setSelectedFloorId(fl.id)}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: 'var(--radius-full)',
-                  fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  backgroundColor: selectedFloorId === fl.id ? 'var(--color-primary)' : 'var(--color-bg)',
-                  color: selectedFloorId === fl.id ? '#ffffff' : 'var(--color-text)',
-                  border: '1px solid var(--color-border)',
-                  cursor: 'pointer',
-                  transition: 'all var(--transition-fast)',
-                }}
-              >
-                {fl.name}
-              </button>
-            ))}
-          </div>
-
           {/* Quick Search Input */}
-          <div className="admin-search-wrapper" style={{ minWidth: '240px', maxWidth: '340px', flex: 1 }}>
+          <div className="admin-search-wrapper" style={{ flex: 1, minWidth: '240px' }}>
             <Search size={16} className="admin-search-icon" />
             <input
               type="text"
-              placeholder="Tìm số phòng, tên khách..."
+              placeholder="Tìm số phòng, tên khách, hạng phòng..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="admin-search-input"
             />
           </div>
+
+          {/* Floor Selection Dropdown (CustomSelect - Chống vỡ khi có 10, 50 hay 100 tầng) */}
+          <div className="admin-filter-control" style={{ minWidth: '240px' }}>
+            <CustomSelect
+              options={floorOptions}
+              value={selectedFloorId}
+              onChange={(val) => setSelectedFloorId(val)}
+              placeholder="Lọc theo tầng..."
+            />
+          </div>
         </div>
 
-        {/* Status Pills with Counters */}
+        {/* Status Pills with Counters (Cuộn ngang mượt mà, chống bẻ dòng khi nhiều data) */}
         <div
           style={{
             display: 'flex',
-            flexWrap: 'wrap',
             alignItems: 'center',
             gap: '0.5rem',
             paddingTop: '0.75rem',
             borderTop: '1px solid var(--color-border)',
+            overflowX: 'auto',
+            whiteSpace: 'nowrap',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
+            width: '100%',
           }}
         >
-          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)', marginRight: '0.25rem' }}>
+          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)', flexShrink: 0, marginRight: '0.25rem' }}>
             Trạng thái:
           </span>
 
@@ -380,6 +361,7 @@ export default function AdminRoomsPage() {
           <button
             onClick={() => setSelectedStatus('ALL')}
             style={{
+              flexShrink: 0,
               padding: '0.35rem 0.75rem',
               borderRadius: 'var(--radius-full)',
               fontSize: '0.8125rem',
@@ -397,6 +379,7 @@ export default function AdminRoomsPage() {
           <button
             onClick={() => setSelectedStatus('AVAILABLE')}
             style={{
+              flexShrink: 0,
               padding: '0.35rem 0.75rem',
               borderRadius: 'var(--radius-full)',
               fontSize: '0.8125rem',
@@ -414,6 +397,7 @@ export default function AdminRoomsPage() {
           <button
             onClick={() => setSelectedStatus('OCCUPIED')}
             style={{
+              flexShrink: 0,
               padding: '0.35rem 0.75rem',
               borderRadius: 'var(--radius-full)',
               fontSize: '0.8125rem',
@@ -431,6 +415,7 @@ export default function AdminRoomsPage() {
           <button
             onClick={() => setSelectedStatus('DIRTY')}
             style={{
+              flexShrink: 0,
               padding: '0.35rem 0.75rem',
               borderRadius: 'var(--radius-full)',
               fontSize: '0.8125rem',
@@ -448,6 +433,7 @@ export default function AdminRoomsPage() {
           <button
             onClick={() => setSelectedStatus('CLEANING')}
             style={{
+              flexShrink: 0,
               padding: '0.35rem 0.75rem',
               borderRadius: 'var(--radius-full)',
               fontSize: '0.8125rem',
@@ -465,6 +451,7 @@ export default function AdminRoomsPage() {
           <button
             onClick={() => setSelectedStatus('MAINTENANCE')}
             style={{
+              flexShrink: 0,
               padding: '0.35rem 0.75rem',
               borderRadius: 'var(--radius-full)',
               fontSize: '0.8125rem',

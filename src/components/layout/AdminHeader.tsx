@@ -22,6 +22,7 @@ const ADMIN_BREADCRUMBS: { path: string; category?: string; title: string }[] = 
   { path: '/admin/services', category: 'Dịch vụ & Thu ngân', title: 'Minibar & Dịch vụ' },
   { path: '/admin/invoices', category: 'Dịch vụ & Thu ngân', title: 'Hóa đơn & Thu ngân' },
   { path: '/admin/room-types', category: 'Quản trị hệ thống', title: 'Cấu hình hạng phòng' },
+  { path: '/admin/amenities', category: 'Quản trị hệ thống', title: 'Danh mục tiện nghi' },
   { path: '/admin/users', category: 'Quản trị hệ thống', title: 'Nhân viên & Phân quyền' },
 ];
 

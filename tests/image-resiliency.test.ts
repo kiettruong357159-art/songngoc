@@ -23,5 +23,26 @@ describe('Task 27: System-Wide Image Resiliency & SafeImage Fallback', () => {
     expect(content).toContain('SafeImage');
     expect(content).toContain('onError');
     expect(content).toContain('placeholder-room.svg');
+    expect(content).toContain('isValidImageSrc');
+  });
+
+  it('isValidImageSrc correctly validates URLs and paths', async () => {
+    const { isValidImageSrc } = await import('../src/components/ui/SafeImage');
+
+    // Valid paths and URLs
+    expect(isValidImageSrc('/uploads/rooms/room-123.jpg')).toBe(true);
+    expect(isValidImageSrc('/images/placeholder-room.svg')).toBe(true);
+    expect(isValidImageSrc('https://images.unsplash.com/photo-123')).toBe(true);
+    expect(isValidImageSrc('http://example.com/pic.png')).toBe(true);
+    expect(isValidImageSrc('data:image/png;base64,iVBORw0KGgo=')).toBe(true);
+
+    // Invalid URLs that would cause new URL() to crash
+    expect(isValidImageSrc('')).toBe(false);
+    expect(isValidImageSrc('   ')).toBe(false);
+    expect(isValidImageSrc(null)).toBe(false);
+    expect(isValidImageSrc(undefined)).toBe(false);
+    expect(isValidImageSrc('not-a-url')).toBe(false);
+    expect(isValidImageSrc('htp://bad-protocol')).toBe(false);
+    expect(isValidImageSrc('abc.com')).toBe(false);
   });
 });

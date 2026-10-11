@@ -61,3 +61,25 @@
 - [x] Task 45: Chuẩn hóa format trang Dịch vụ (`/admin/services`) & Nhân viên (`/admin/users`): Tích hợp đầy đủ Bộ lọc nhiều tiêu chí (Search, Category/Role, Status) và Phân trang chuẩn (`<Pagination>`).
 - [x] Task 46: Chuẩn hóa format trang Hạng phòng (`/admin/room-types`) & Sơ đồ phòng (`/admin/rooms`): Đồng bộ Action Bar, Search & Filter Bar, card grid format.
 - [x] Task 47: Kiểm thử toàn diện `npx tsc --noEmit`, test suite `npx vitest run`, và rule check `npm run check:rules`.
+
+## Phase 8: Quản lý Hạng phòng & Hình ảnh Phòng (Room Types CRUD & Images)
+- [x] Task 48: API Upload ảnh & Quản lý thư mục tĩnh (`POST /api/admin/upload`, lưu vào `public/uploads/rooms/`).
+- [x] Task 49: Backend API CRUD Hạng phòng: Thêm mới `POST /api/admin/room-types`, sửa đầy đủ ảnh/tiện nghi `PATCH /api/admin/room-types`, xóa có ràng buộc an toàn `DELETE /api/admin/room-types/[id]`.
+- [x] Task 50: Component Modal Quản lý Hạng phòng `RoomTypeModal.tsx` (Tải ảnh từ máy, thêm URL, xóa ảnh, đặt cover, bộ chọn tiện nghi badges, form bảng giá).
+- [x] Task 51: Nâng cấp Giao diện `/admin/room-types/page.tsx` (Nút thêm hạng phòng, ảnh đại diện + badge số lượng ảnh, nút xóa kèm Confirm Modal).
+- [x] Task 52: Kiểm thử Unit Tests `tests/room-types-crud.test.ts`, Type Check & Code Rules Verification.
+
+## Phase 9: Quản lý Danh mục Tiện nghi & Cấu hình Chính sách Nhận phòng
+- [x] Task 53: CSDL Neon & Migration (Model `Amenity` & trường `policies` trong `RoomType`, dừng dev server tránh DLL lock, nạp 20 tiện nghi mặc định).
+- [x] Task 54: Backend APIs: CRUD Tiện nghi (`/api/admin/amenities` & `[id]`), cập nhật API Hạng phòng lưu `policies`.
+- [x] Task 55: Giao diện Quản trị: Thêm menu `/admin/amenities` vào `AdminSidebar.tsx`, xây dựng trang `/admin/amenities/page.tsx` và `AmenityModal.tsx`.
+- [x] Task 56: Tích hợp Tiện nghi động & Quản lý Chính sách vào `RoomTypeModal.tsx` (Mục 5: Chính sách nhận phòng kèm nút "Nạp chính sách mặc định").
+- [x] Task 57: Cập nhật Storefront `/rooms/[slug]` hiển thị chính sách động từ `roomType.policies`.
+- [x] Task 58: Kiểm thử toàn diện (`tests/amenities-policies.test.ts`), `npm run verify` (`check:rules`, `check:types`, `vitest`).
+
+## Phase 10: Trình Chiếu Ảnh Dạng Carousel Cho Hạng Phòng
+- [x] Task 59: Xây dựng Client Component `RoomImageCarousel.tsx` (Trượt slide mượt mà, nút Prev/Next Glassmorphism, badge đếm ảnh `1/N`, dải thumbnail thu nhỏ có thể click chuyển slide, hỗ trợ touch swipe và lightbox phóng to).
+- [x] Task 60: Tích hợp `RoomImageCarousel` vào trang chi tiết hạng phòng `src/app/(public)/rooms/[slug]/page.tsx` thay thế layout grid tĩnh cũ.
+- [x] Task 61: Viết kiểm thử `tests/room-image-carousel.test.ts` và chạy toàn diện `npm run verify` (`check:rules`, `check:types`, `vitest run`).
+
+

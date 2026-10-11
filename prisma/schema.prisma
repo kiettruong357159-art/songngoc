@@ -66,6 +66,7 @@ model RoomType {
   amenities    String    // JSON string: '["wifi", "air_con", "tv_smart", "hot_water", "balcony"]'
   images       String    // JSON string mảng URL ảnh chất lượng cao
   description  String
+  policies     String?   // Nội dung chính sách khách sạn & nhận phòng (mỗi dòng 1 điều khoản)
   isActive     Boolean   @default(true)
   rooms        Room[]
   bookings     Booking[]
@@ -230,4 +231,22 @@ model Invoice {
   @@index([invoiceCode])
   @@index([createdAt])
   @@index([paymentMethod, createdAt])
+}
+
+// ----------------------------------------------------
+// 6. TIỆN NGHI HẠNG PHÒNG (AMENITIES MASTER DATA)
+// ----------------------------------------------------
+model Amenity {
+  id        String   @id @default(cuid())
+  code      String   @unique // "wifi", "air_con", "bathtub", "coffee_maker"
+  name      String   // "Wifi tốc độ cao", "Máy lạnh / Điều hòa"
+  icon      String   @default("sparkles") // wifi, snowflake, tv, bath, coffee...
+  category  String   @default("GENERAL") // BEDROOM, BATHROOM, MEDIA, GENERAL
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category, isActive])
+  @@index([sortOrder])
 }

@@ -12,6 +12,7 @@ import {
   Receipt,
   BedDouble,
   Users,
+  Sparkles,
   X,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -92,6 +93,12 @@ export const AdminSidebar: React.FC = () => {
           label: 'Cấu hình hạng phòng',
           href: '/admin/room-types',
           icon: <BedDouble size={18} />,
+          permission: '*',
+        },
+        {
+          label: 'Danh mục tiện nghi',
+          href: '/admin/amenities',
+          icon: <Sparkles size={18} />,
           permission: '*',
         },
         {

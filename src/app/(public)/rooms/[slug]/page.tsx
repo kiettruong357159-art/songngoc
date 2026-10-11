@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { cache } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
+import { db } from '@/lib/db';
 import { getCachedRoomTypeBySlug } from '@/lib/cached-queries';
 import { formatVND } from '@/lib/utils';
-import { SafeImage } from '@/components/ui/SafeImage';
+import { RoomImageCarousel } from '@/components/room/RoomImageCarousel';
 import { Badge } from '@/components/ui/Badge';
+import { AmenityIcon } from '@/components/admin/AmenityIcon';
 import {
   Bed,
   Maximize2,
@@ -15,6 +17,12 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
+
+const getCachedAmenities = cache(async () => {
+  return db.amenity.findMany({
+    where: { isActive: true },
+  });
+});
 
 interface RoomDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -62,6 +70,22 @@ export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
     amenities = ['wifi', 'air_con', 'tv_smart', 'hot_water'];
   }
 
+  const dbAmenities = await getCachedAmenities();
+  const amenityMap = new Map(dbAmenities.map((a) => [a.code, a]));
+
+  const defaultPolicies = [
+    'Nhận phòng từ 14:00 và trả phòng trước 12:00 trưa hôm sau.',
+    'Quý khách vui lòng xuất trình CCCD hoặc Hộ chiếu khi làm thủ tục nhận phòng tại quầy lễ tân.',
+    'Thanh toán đặt cọc tiện lợi và nhanh chóng bằng mã VietQR Napas247.',
+    'Không hút thuốc trong phòng nghỉ nhằm đảm bảo không khí trong lành cho kỳ nghỉ của quý khách.',
+    'Giữ yên lặng sau 22:00 để đảm bảo không gian nghỉ ngơi thư thái cho mọi khách lưu trú.',
+    'Phụ thu nhận phòng sớm hoặc trả phòng trễ tùy thuộc vào tình trạng phòng thực tế của Homestay.',
+  ];
+
+  const policyLines = roomType.policies && roomType.policies.trim()
+    ? roomType.policies.split('\n').map((l) => l.trim()).filter(Boolean)
+    : defaultPolicies;
+
   return (
     <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', padding: '3.5rem 0 5rem' }}>
       <div className="container">
@@ -94,38 +118,8 @@ export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
           </div>
         </div>
 
-        {/* Photo Gallery Grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '1rem',
-            borderRadius: 'var(--radius-lg)',
-            overflow: 'hidden',
-            marginBottom: '3rem',
-          }}
-        >
-          {images.map((img, idx) => (
-            <div
-              key={idx}
-              style={{
-                position: 'relative',
-                height: 'clamp(260px, 36vw, 380px)',
-                borderRadius: 'var(--radius-md)',
-                overflow: 'hidden',
-              }}
-            >
-              <SafeImage
-                src={img}
-                alt={`${roomType.name} - Ảnh ${idx + 1}`}
-                fill
-                style={{ objectFit: 'cover' }}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                priority={idx === 0}
-              />
-            </div>
-          ))}
-        </div>
+        {/* Photo Gallery Carousel */}
+        <RoomImageCarousel images={images} roomName={roomType.name} />
 
         {/* Main Content & Booking Sidebar */}
         <div
@@ -203,25 +197,34 @@ export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
                 marginBottom: '2.5rem',
               }}
             >
-              {amenities.map((item, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.625rem',
-                    padding: '0.75rem 1rem',
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: '0.9rem',
-                    color: 'var(--color-text)',
-                  }}
-                >
-                  <Check size={18} style={{ color: 'var(--color-room-available)' }} />
-                  <span>{item.replace('_', ' ').toUpperCase()}</span>
-                </div>
-              ))}
+              {amenities.map((item, i) => {
+                const matched = amenityMap.get(item);
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.625rem',
+                      padding: '0.75rem 1rem',
+                      backgroundColor: 'var(--color-surface)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-md)',
+                      fontSize: '0.9rem',
+                      color: 'var(--color-text)',
+                    }}
+                  >
+                    {matched ? (
+                      <span style={{ color: 'var(--color-primary)', display: 'inline-flex' }}>
+                        <AmenityIcon icon={matched.icon} size={18} />
+                      </span>
+                    ) : (
+                      <Check size={18} style={{ color: 'var(--color-room-available)' }} />
+                    )}
+                    <span>{matched ? matched.name : item.replace(/_/g, ' ')}</span>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Hotel Policies */}
@@ -235,14 +238,19 @@ export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
                 borderRadius: 'var(--radius-md)',
                 padding: '1.5rem',
                 fontSize: '0.9rem',
-                color: 'var(--color-text-muted)',
-                lineHeight: 1.7,
+                color: 'var(--color-text)',
+                lineHeight: 1.8,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.625rem',
               }}
             >
-              <p>• Nhận phòng từ <strong>14:00</strong> và trả phòng trước <strong>12:00</strong>.</p>
-              <p>• Quý khách vui lòng xuất trình CCCD hoặc Hộ chiếu khi làm thủ tục nhận phòng tại quầy.</p>
-              <p>• Thanh toán đặt cọc tiện lợi và nhanh chóng bằng mã <strong>VietQR Napas247</strong>.</p>
-              <p>• Không hút thuốc trong phòng nghỉ nhằm đảm bảo không khí trong lành cho kỳ nghỉ của quý khách.</p>
+              {policyLines.map((line, idx) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem' }}>
+                  <span style={{ color: 'var(--color-primary)', fontWeight: 700, lineHeight: 1.5 }}>•</span>
+                  <span style={{ color: 'var(--color-text-muted)' }}>{line}</span>
+                </div>
+              ))}
             </div>
           </div>
 

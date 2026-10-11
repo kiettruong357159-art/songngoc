@@ -7,7 +7,6 @@ import {
   Bed, 
   CreditCard, 
   CheckCircle, 
-  ArrowLeft,
   Sparkles,
   AlertCircle
 } from 'lucide-react';
@@ -247,28 +246,6 @@ function CheckinFormContent() {
 
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-      {/* Top Breadcrumb & Header */}
-      <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '36px',
-            height: '36px',
-            borderRadius: 'var(--radius-full)',
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            color: 'var(--color-text)',
-            cursor: 'pointer',
-          }}
-        >
-          <ArrowLeft size={18} />
-        </button>
-      </div>
-
       <form onSubmit={handleSubmit}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
           {/* Section 1: Guest Information */}
