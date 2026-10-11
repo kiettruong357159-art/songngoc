@@ -34,3 +34,9 @@
 - [x] Task 27: System-Wide Image Resiliency (placeholder-room.svg & SafeImage.tsx với onError fallback)
 - [x] Task 28: Per-Page Tailored Skeleton System (loading.tsx theo từng route, SkeletonBox, AdminDashboardSkeleton, RoomCardSkeleton)
 - [x] Task 29: Kiểm thử tích hợp toàn diện, Type Check & Production Build Verification
+
+## Phase 4: Tối ưu hóa Toàn diện Mobile & Tablet (Taste Skill Responsive UI)
+- [x] Task 30: Admin PMS Mobile Drawer & Header Responsive (AdminUIContext, AdminSidebar, AdminHeader, admin/layout.tsx)
+- [x] Task 31: Public Storefront Mobile & Tablet Layout (FloatingBookingBar, rooms/[slug], booking/page.tsx)
+- [x] Task 32: Table & PMS Room Rack Mobile Horizontal Scrolling & Grid Adaptive
+- [x] Task 33: Responsive UI Testing & Production Build Verification
