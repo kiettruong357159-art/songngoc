@@ -53,13 +53,7 @@ export const FloorSection: React.FC<FloorSectionProps> = ({
       </div>
 
       {/* Grid of rooms on this floor */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-          gap: '1.25rem',
-        }}
-      >
+      <div className="pms-room-grid">
         {rooms.map((room) => (
           <RoomCard key={room.id} room={room} onClick={onRoomClick} />
         ))}
