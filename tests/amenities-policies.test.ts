@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { DEFAULT_AMENITIES_SEED } from '@/app/api/admin/amenities/route';
+import { DEFAULT_AMENITIES_SEED } from '@/lib/amenity-defaults';
 import { AMENITY_ICON_MAP, AVAILABLE_AMENITY_ICONS } from '@/components/admin/AmenityIcon';
 import { DEFAULT_HOTEL_POLICIES } from '@/components/admin/RoomTypeModal';
 
