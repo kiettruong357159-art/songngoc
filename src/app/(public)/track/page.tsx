@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, Calendar, Bed, User, ShieldCheck, Clock } from 'lucide-react';
+import { Search      } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatVND, formatDateVN } from '@/lib/utils';
 import { BOOKING_STATUS_META, BookingStatus } from '@/lib/constants';
+import { useToast } from '@/context/ToastContext';
 
 function TrackContent() {
   const searchParams = useSearchParams();
@@ -15,12 +16,12 @@ function TrackContent() {
   const [query, setQuery] = useState(initialCode);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[] | null>(null);
-  const [errorMsg, setErrorMsg] = useState('');
+  const { showToast } = useToast();
 
   const handleSearch = async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
     setLoading(true);
-    setErrorMsg('');
+    setResults(null);
 
     try {
       const res = await fetch(`/api/booking/track?query=${encodeURIComponent(searchQuery.trim())}`);
@@ -28,13 +29,13 @@ function TrackContent() {
       if (json.success) {
         setResults(json.data);
         if (json.data.length === 0) {
-          setErrorMsg('Không tìm thấy thông tin đơn đặt phòng tương ứng.');
+          showToast('Không tìm thấy thông tin đơn đặt phòng tương ứng.', 'info');
         }
       } else {
-        setErrorMsg(json.error || 'Tra cứu thất bại');
+        showToast(json.error || 'Tra cứu thất bại', 'error');
       }
     } catch {
-      setErrorMsg('Không thể kết nối đến máy chủ.');
+      showToast('Không thể kết nối đến máy chủ.', 'error');
     } finally {
       setLoading(false);
     }
@@ -125,23 +126,6 @@ function TrackContent() {
             </Button>
           </form>
         </div>
-
-        {/* Error / Empty State */}
-        {errorMsg && (
-          <div
-            style={{
-              padding: '2rem',
-              textAlign: 'center',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              color: 'var(--color-text-muted)',
-              marginBottom: '2rem',
-            }}
-          >
-            {errorMsg}
-          </div>
-        )}
 
         {/* Results List */}
         {results && results.length > 0 && (

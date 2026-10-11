@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Calendar, Users, Phone, User, Mail, CreditCard, QrCode, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Phone, User, Mail, CreditCard, QrCode, ShieldCheck, ArrowRight } from 'lucide-react';
 import { CustomSelect, SelectOption } from '@/components/ui/CustomSelect';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/context/ToastContext';
@@ -15,7 +15,6 @@ function BookingFormContent() {
   const toast = useToast();
 
   const [roomTypes, setRoomTypes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   // Form states
@@ -47,11 +46,12 @@ function BookingFormContent() {
           } else if (json.data.length > 0) {
             setSelectedRoomTypeId(json.data[0].id);
           }
+        } else {
+          toast.error(json.error || 'Không thể tải danh sách hạng phòng');
         }
       } catch (err) {
         console.error(err);
-      } finally {
-        setLoading(false);
+        toast.error('Không thể kết nối đến máy chủ.');
       }
     }
     loadData();

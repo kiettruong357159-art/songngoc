@@ -25,3 +25,23 @@ export interface PaginatedResponse<T> {
     hasPrevPage: boolean;
   };
 }
+
+/**
+ * Tạo phản hồi thành công theo envelope ActionResponse
+ * @param data Dữ liệu trả về
+ * @param message Thông báo tùy chọn
+ * @returns ActionResponse thành công
+ */
+export function successResponse<T>(data: T, message?: string): ActionResponse<T> {
+  return { success: true, data, message };
+}
+
+/**
+ * Tạo phản hồi lỗi theo envelope ActionResponse
+ * @param error Nội dung lỗi
+ * @param fieldErrors Lỗi theo từng trường (tùy chọn)
+ * @returns ActionResponse thất bại
+ */
+export function errorResponse(error: string, fieldErrors?: Record<string, string[]>): ActionResponse<never> {
+  return { success: false, error, fieldErrors };
+}

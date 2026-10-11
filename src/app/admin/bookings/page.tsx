@@ -1,16 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback  } from 'react';
 import Link from 'next/link';
 import { 
   Search, 
-  Filter, 
-  Calendar, 
-  User, 
-  Phone, 
-  Bed, 
-  CheckCircle, 
-  XCircle, 
   LogIn, 
   Plus, 
   RefreshCw,
@@ -246,27 +239,12 @@ export default function AdminBookingsPage() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <div>
-          <h1 className="serif-heading" style={{ fontSize: '1.875rem', color: 'var(--color-primary)' }}>
-            Quản Lý Đơn Đặt Phòng (Bookings)
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Tra cứu, xác nhận và quản lý toàn diện các đơn đặt phòng từ Website và Lễ tân.
-          </p>
+      {/* Standard Action Header */}
+      <div className="admin-action-header">
+        <div className="admin-action-header-left">
+          {/* Breadcrumb is rendered by AdminHeader */}
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="admin-action-header-right">
           <Button
             variant="outline"
             size="sm"
@@ -287,52 +265,22 @@ export default function AdminBookingsPage() {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div
-        className="glass-panel"
-        style={{
-          padding: '1.25rem',
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          marginBottom: '1.5rem',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: '1rem',
-        }}
-      >
+      {/* Standard Filter Card */}
+      <div className="admin-filter-card">
         {/* Search input */}
-        <div style={{ position: 'relative', flex: 1, minWidth: '260px' }}>
-          <Search
-            size={16}
-            style={{
-              position: 'absolute',
-              left: '0.75rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--color-text-muted)',
-            }}
-          />
+        <div className="admin-search-wrapper">
+          <Search size={16} className="admin-search-icon" />
           <input
             type="text"
             placeholder="Tìm theo mã đơn, tên khách, số điện thoại..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.55rem 0.75rem 0.55rem 2.25rem',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-bg)',
-              color: 'var(--color-text)',
-              fontSize: '0.875rem',
-            }}
+            className="admin-search-input"
           />
         </div>
 
         {/* Status filter dropdown using CustomSelect */}
-        <div style={{ width: '240px' }}>
+        <div className="admin-filter-control" style={{ width: '240px' }}>
           <CustomSelect
             options={statusOptions}
             value={statusFilter}
@@ -345,37 +293,19 @@ export default function AdminBookingsPage() {
         </div>
       </div>
 
-      {/* Bookings Table */}
-      <div
-        className="glass-panel"
-        style={{
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          overflow: 'hidden',
-          marginBottom: '1.5rem',
-        }}
-      >
+      {/* Standard Table Card */}
+      <div className="admin-table-card">
         <div className="table-responsive">
-          <table style={{ width: '100%', minWidth: '780px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+          <table className="admin-table">
             <thead>
-              <tr
-                style={{
-                  backgroundColor: 'var(--color-bg)',
-                  borderBottom: '2px solid var(--color-border)',
-                  color: 'var(--color-text-muted)',
-                  fontSize: '0.75rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                <th style={{ padding: '0.875rem 1rem' }}>Mã đơn & Nguồn</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Khách hàng</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Hạng phòng & Số phòng</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Lịch trình</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Tiền phòng & Cọc</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Trạng thái</th>
-                <th style={{ padding: '0.875rem 1rem', textAlign: 'right' }}>Thao tác</th>
+              <tr>
+                <th>Mã đơn & Nguồn</th>
+                <th>Khách hàng</th>
+                <th>Hạng phòng & Số phòng</th>
+                <th>Lịch trình</th>
+                <th>Tiền phòng & Cọc</th>
+                <th>Trạng thái</th>
+                <th style={{ textAlign: 'right' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -403,17 +333,9 @@ export default function AdminBookingsPage() {
                   const nights = calculateNights(new Date(booking.checkIn), new Date(booking.checkOut));
 
                   return (
-                    <tr
-                      key={booking.id}
-                      style={{
-                        borderBottom: '1px solid var(--color-border)',
-                        transition: 'background-color var(--transition-fast)',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-bg)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
+                    <tr key={booking.id}>
                       {/* Code & Source */}
-                      <td style={{ padding: '1rem' }}>
+                      <td>
                         <div style={{ fontWeight: 700, color: 'var(--color-primary)' }}>{booking.bookingCode}</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                           {booking.source === 'ONLINE_WEB' ? '🌐 Đặt Website' : '🏨 Tại quầy'}
@@ -421,7 +343,7 @@ export default function AdminBookingsPage() {
                       </td>
 
                       {/* Guest */}
-                      <td style={{ padding: '1rem' }}>
+                      <td>
                         <div style={{ fontWeight: 600 }}>{booking.guest.fullName}</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                           {booking.guest.phone}
@@ -429,7 +351,7 @@ export default function AdminBookingsPage() {
                       </td>
 
                       {/* Room & Type */}
-                      <td style={{ padding: '1rem' }}>
+                      <td>
                         <div>{booking.roomType.name}</div>
                         {booking.room ? (
                           <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 600 }}>
@@ -443,7 +365,7 @@ export default function AdminBookingsPage() {
                       </td>
 
                       {/* Schedule */}
-                      <td style={{ padding: '1rem' }}>
+                      <td>
                         <div>
                           {formatDateVN(booking.checkIn)} → {formatDateVN(booking.checkOut)}
                         </div>
@@ -453,7 +375,7 @@ export default function AdminBookingsPage() {
                       </td>
 
                       {/* Financials */}
-                      <td style={{ padding: '1rem' }}>
+                      <td>
                         <div style={{ fontWeight: 600 }}>{formatVND(booking.totalRoomAmount)}</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-success)' }}>
                           Cọc: {formatVND(booking.depositAmount)}
@@ -461,15 +383,15 @@ export default function AdminBookingsPage() {
                       </td>
 
                       {/* Status */}
-                      <td style={{ padding: '1rem' }}>
+                      <td>
                         <Badge variant={meta.badgeType as any} size="sm">
                           {meta.label}
                         </Badge>
                       </td>
 
                       {/* Actions */}
-                      <td style={{ padding: '1rem', textAlign: 'right' }}>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="admin-table-actions">
                           {booking.status === 'PENDING' && (
                             <>
                               <Button
@@ -528,14 +450,25 @@ export default function AdminBookingsPage() {
           </table>
         </div>
 
-        {/* Pagination bar */}
-        {!loading && totalPages > 1 && (
-          <div style={{ padding: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'center' }}>
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={(page) => setCurrentPage(page)}
-            />
+        {/* Standard Table Footer */}
+        {!loading && (
+          <div className="admin-table-footer">
+            <div className="admin-table-count">
+              {totalCount > 0 ? (
+                <>
+                  Hiển thị <strong>{(currentPage - 1) * 10 + 1} - {Math.min(currentPage * 10, totalCount)}</strong> trên tổng số <strong>{totalCount}</strong> đơn đặt phòng
+                </>
+              ) : (
+                <span>Không có đơn đặt phòng</span>
+              )}
+            </div>
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
+            )}
           </div>
         )}
       </div>

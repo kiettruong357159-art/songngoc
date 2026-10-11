@@ -1,14 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Lock, User, LogIn, ArrowLeft, Shield } from 'lucide-react';
+import { Lock, User, LogIn, ArrowLeft  } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/context/ToastContext';
 
 export default function LoginPage() {
-  const router = useRouter();
   const toast = useToast();
 
   const [username, setUsername] = useState('');

@@ -3,13 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Printer, 
-  CreditCard, 
-  QrCode, 
-  CheckCircle, 
-  FileText, 
-  Coffee, 
-  Sparkles,
-  AlertCircle,
+  CheckCircle,
   Receipt
 } from 'lucide-react';
 import { formatVND, formatDateVN } from '@/lib/utils';
@@ -99,7 +93,7 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
   const [surchargeReason, setSurchargeReason] = useState('');
   const [discount, setDiscount] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'VIETQR' | 'CARD'>('CASH');
-  const [notes, setNotes] = useState('');
+  const [notes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const activeBooking = invoice ? invoice.booking : booking;

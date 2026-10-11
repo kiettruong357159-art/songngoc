@@ -98,7 +98,6 @@ export async function POST(request: NextRequest) {
       adults = 1,
       children = 0,
       depositAmount = 0,
-      paymentMethod = 'CASH',
       specialRequests,
       status = 'CHECKED_IN',
     } = body;

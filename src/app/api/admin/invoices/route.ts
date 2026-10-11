@@ -14,11 +14,15 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search')?.trim() || '';
+    const paymentMethod = searchParams.get('paymentMethod')?.trim() || '';
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '10', 10)));
     const skip = (page - 1) * limit;
 
     const where: any = {};
+    if (paymentMethod && paymentMethod !== 'ALL') {
+      where.paymentMethod = paymentMethod;
+    }
     if (search) {
       where.OR = [
         { invoiceCode: { contains: search } },

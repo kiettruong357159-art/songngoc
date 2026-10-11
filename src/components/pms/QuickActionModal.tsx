@@ -13,7 +13,8 @@ import {
   User,
   Calendar,
   Phone,
-  FileText
+  Edit2,
+  Trash2
 } from 'lucide-react';
 import { RoomData } from './RoomCard';
 import { ROOM_STATUS_META, RoomStatus } from '@/lib/constants';
@@ -26,6 +27,8 @@ interface QuickActionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStatusChange: (roomId: string, newStatus: RoomStatus, note?: string) => Promise<void>;
+  onEditRoom?: (room: RoomData) => void;
+  onDeleteRoom?: (room: RoomData) => void;
 }
 
 export const QuickActionModal: React.FC<QuickActionModalProps> = ({
@@ -33,6 +36,8 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({
   isOpen,
   onClose,
   onStatusChange,
+  onEditRoom,
+  onDeleteRoom,
 }) => {
   const router = useRouter();
   const [note, setNote] = useState('');
@@ -349,6 +354,55 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({
             </Button>
           </div>
         </div>
+
+        {/* Room Settings: Edit & Delete */}
+        {(onEditRoom || onDeleteRoom) && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingTop: '1rem',
+              borderTop: '1px solid var(--color-border)',
+              marginTop: '0.5rem',
+            }}
+          >
+            <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+              Cấu hình phòng:
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {onEditRoom && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    onClose();
+                    onEditRoom(room);
+                  }}
+                  leftIcon={<Edit2 size={14} />}
+                >
+                  Sửa phòng
+                </Button>
+              )}
+              {onDeleteRoom && (
+                <Button
+                  type="button"
+                  variant="danger"
+                  size="sm"
+                  onClick={() => {
+                    onClose();
+                    onDeleteRoom(room);
+                  }}
+                  disabled={room.status === 'OCCUPIED'}
+                  leftIcon={<Trash2 size={14} />}
+                >
+                  Xóa phòng
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </Modal>
   );

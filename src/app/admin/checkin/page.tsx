@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   UserPlus, 
   Bed, 
-  Calendar, 
   CreditCard, 
   CheckCircle, 
   ArrowLeft,
@@ -268,14 +267,6 @@ function CheckinFormContent() {
         >
           <ArrowLeft size={18} />
         </button>
-        <div>
-          <h1 className="serif-heading" style={{ fontSize: '1.875rem', color: 'var(--color-primary)' }}>
-            Quầy Nhận Phòng Tại Chỗ (Walk-in Check-in)
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-            Tiếp đón khách trực tiếp tại quầy lễ tân, gán phòng và nhận cọc nhanh chóng.
-          </p>
-        </div>
       </div>
 
       <form onSubmit={handleSubmit}>

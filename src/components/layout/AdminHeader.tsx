@@ -5,10 +5,46 @@ import Link from 'next/link';
 import { LogOut, ExternalLink, User, Menu } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useAdminUI } from '@/context/AdminUIContext';
+import { usePathname } from 'next/navigation';
+
+interface BreadcrumbConfig {
+  category?: string;
+  title: string;
+}
+
+/**
+  * Tiêu đề breadcrumb chi tiết theo đường dẫn từng trang admin
+  */
+const ADMIN_BREADCRUMBS: { path: string; category?: string; title: string }[] = [
+  { path: '/admin/rooms', category: 'Vận hành', title: 'Sơ đồ phòng (Grid)' },
+  { path: '/admin/bookings', category: 'Vận hành', title: 'Quản lý đơn đặt phòng' },
+  { path: '/admin/checkin', category: 'Vận hành', title: 'Check-in tại quầy' },
+  { path: '/admin/services', category: 'Dịch vụ & Thu ngân', title: 'Minibar & Dịch vụ' },
+  { path: '/admin/invoices', category: 'Dịch vụ & Thu ngân', title: 'Hóa đơn & Thu ngân' },
+  { path: '/admin/room-types', category: 'Quản trị hệ thống', title: 'Cấu hình hạng phòng' },
+  { path: '/admin/users', category: 'Quản trị hệ thống', title: 'Nhân viên & Phân quyền' },
+];
+
+/**
+  * Lấy cấu hình breadcrumb cho trang hiện tại
+  * @param pathname Đường dẫn hiện tại
+  * @returns {BreadcrumbConfig}
+  */
+function getAdminBreadcrumb(pathname: string): BreadcrumbConfig {
+  if (pathname === '/admin' || pathname === '/admin/') {
+    return { title: 'Tổng quan (Dashboard)' };
+  }
+  const matched = ADMIN_BREADCRUMBS.find(
+    (item) => pathname === item.path || pathname.startsWith(`${item.path}/`)
+  );
+  return matched || { title: 'Trang quản trị' };
+}
 
 export const AdminHeader: React.FC = () => {
   const { user, logout } = useAuth();
   const { toggleSidebar } = useAdminUI();
+  const pathname = usePathname();
+  const breadcrumb = getAdminBreadcrumb(pathname);
 
   return (
     <header className="glass-header admin-header">
@@ -23,13 +59,21 @@ export const AdminHeader: React.FC = () => {
           <Menu size={22} />
         </button>
 
-        <div className="admin-header-breadcrumb">
-          <span className="admin-breadcrumb-root">Hệ Thống Quản Lý</span>
+        <nav aria-label="Breadcrumb" className="admin-header-breadcrumb">
+          <Link href="/admin" className="admin-breadcrumb-root" style={{ textDecoration: 'none' }}>
+            Hệ Thống Quản Lý
+          </Link>
+
+          {breadcrumb.category && (
+            <>
+              <span className="admin-breadcrumb-sep">/</span>
+              <span className="admin-breadcrumb-category">{breadcrumb.category}</span>
+            </>
+          )}
+
           <span className="admin-breadcrumb-sep">/</span>
-          <span className="admin-breadcrumb-current">
-            Bảng Điều Hành Homestay Song Ngọc
-          </span>
-        </div>
+          <span className="admin-breadcrumb-current">{breadcrumb.title}</span>
+        </nav>
       </div>
 
       {/* Right Controls */}

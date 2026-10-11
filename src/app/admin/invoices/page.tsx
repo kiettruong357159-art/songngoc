@@ -3,21 +3,16 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { 
-  FileText, 
   Search, 
-  Filter, 
-  Printer, 
   Eye, 
-  RefreshCw, 
-  Calendar, 
-  CreditCard,
-  CheckCircle,
+  RefreshCw,
   Receipt,
   DollarSign
 } from 'lucide-react';
 import { formatVND, formatDateVN } from '@/lib/utils';
 import Pagination from '@/components/ui/Pagination';
 import Button from '@/components/ui/Button';
+import CustomSelect, { SelectOption } from '@/components/ui/CustomSelect';
 import InvoiceDetailModal, { InvoiceRecord, BookingForInvoice } from '@/components/admin/InvoiceDetailModal';
 import { useToast } from '@/context/ToastContext';
 
@@ -33,6 +28,7 @@ function InvoicesPageContent() {
   // Filters & Pagination
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -63,6 +59,9 @@ function InvoicesPageContent() {
           limit: '10',
         });
         if (debouncedSearch) params.set('search', debouncedSearch);
+        if (paymentMethodFilter && paymentMethodFilter !== 'ALL') {
+          params.set('paymentMethod', paymentMethodFilter);
+        }
 
         const res = await fetch(`/api/admin/invoices?${params.toString()}`);
         const data = await res.json();
@@ -82,7 +81,7 @@ function InvoicesPageContent() {
         setRefreshing(false);
       }
     },
-    [currentPage, debouncedSearch, showToast]
+    [currentPage, debouncedSearch, paymentMethodFilter, showToast]
   );
 
   useEffect(() => {
@@ -127,29 +126,21 @@ function InvoicesPageContent() {
     return invoices.reduce((sum, inv) => sum + inv.finalAmount, 0);
   }, [invoices]);
 
+  const paymentMethodOptions: SelectOption[] = [
+    { value: 'ALL', label: 'Tất cả hình thức' },
+    { value: 'VIETQR', label: 'VietQR Napas247' },
+    { value: 'CASH', label: 'Tiền mặt' },
+    { value: 'CARD', label: 'Thẻ POS' },
+  ];
+
   return (
     <div>
-      {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <div>
-          <h1 className="serif-heading" style={{ fontSize: '1.875rem', color: 'var(--color-primary)' }}>
-            Hóa Đơn & Quyết Toán (Invoices)
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Lịch sử toàn bộ hóa đơn thanh toán trả phòng, thống kê doanh thu và in phiếu thu.
-          </p>
+      {/* Standard Action Header */}
+      <div className="admin-action-header">
+        <div className="admin-action-header-left">
+          {/* Breadcrumb handled by layout */}
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="admin-action-header-right">
           <Button
             variant="outline"
             size="sm"
@@ -241,78 +232,46 @@ function InvoicesPageContent() {
         </div>
       </div>
 
-      {/* Search Input Bar */}
-      <div
-        className="glass-panel"
-        style={{
-          padding: '1.25rem',
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <div style={{ position: 'relative', maxWidth: '400px' }}>
-          <Search
-            size={16}
-            style={{
-              position: 'absolute',
-              left: '0.75rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--color-text-muted)',
-            }}
-          />
+      {/* Standard Filter Card */}
+      <div className="admin-filter-card">
+        <div className="admin-search-wrapper">
+          <Search size={16} className="admin-search-icon" />
           <input
             type="text"
             placeholder="Tìm theo mã HĐ, mã đặt phòng, tên khách..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.55rem 0.75rem 0.55rem 2.25rem',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-bg)',
-              color: 'var(--color-text)',
-              fontSize: '0.875rem',
+            className="admin-search-input"
+          />
+        </div>
+
+        <div className="admin-filter-control" style={{ width: '220px' }}>
+          <CustomSelect
+            options={paymentMethodOptions}
+            value={paymentMethodFilter}
+            onChange={(val) => {
+              setPaymentMethodFilter(val);
+              setCurrentPage(1);
             }}
+            placeholder="Phương thức thanh toán..."
           />
         </div>
       </div>
 
-      {/* Invoices Table */}
-      <div
-        className="glass-panel"
-        style={{
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          overflow: 'hidden',
-          marginBottom: '1.5rem',
-        }}
-      >
+      {/* Standard Table Card */}
+      <div className="admin-table-card">
         <div className="table-responsive">
-          <table style={{ width: '100%', minWidth: '780px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+          <table className="admin-table">
             <thead>
-              <tr
-                style={{
-                  backgroundColor: 'var(--color-bg)',
-                  borderBottom: '2px solid var(--color-border)',
-                  color: 'var(--color-text-muted)',
-                  fontSize: '0.75rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                <th style={{ padding: '0.875rem 1rem' }}>Mã HĐ & Ngày xuất</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Đơn phòng & Khách</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Tiền phòng</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Dịch vụ / Phụ thu</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Cọc đã trừ</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Thực thu</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Hình thức</th>
-                <th style={{ padding: '0.875rem 1rem', textAlign: 'right' }}>Thao tác</th>
+              <tr>
+                <th>Mã HĐ & Ngày xuất</th>
+                <th>Đơn phòng & Khách</th>
+                <th>Tiền phòng</th>
+                <th>Dịch vụ / Phụ thu</th>
+                <th>Cọc đã trừ</th>
+                <th>Thực thu</th>
+                <th>Hình thức</th>
+                <th style={{ textAlign: 'right' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -326,37 +285,29 @@ function InvoicesPageContent() {
               ) : invoices.length === 0 ? (
                 <tr>
                   <td colSpan={8} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--color-text-muted)' }}>
-                    Chưa có hóa đơn thanh toán nào được tạo.
+                    Chưa có hóa đơn thanh toán nào phù hợp.
                   </td>
                 </tr>
               ) : (
                 invoices.map((inv) => (
-                  <tr
-                    key={inv.id}
-                    style={{
-                      borderBottom: '1px solid var(--color-border)',
-                      transition: 'background-color var(--transition-fast)',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-bg)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  >
-                    <td style={{ padding: '1rem' }}>
+                  <tr key={inv.id}>
+                    <td>
                       <div style={{ fontWeight: 700, color: 'var(--color-primary)' }}>{inv.invoiceCode}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                         {formatDateVN(inv.createdAt)}
                       </div>
                     </td>
 
-                    <td style={{ padding: '1rem' }}>
+                    <td>
                       <div style={{ fontWeight: 600 }}>{inv.booking.guest.fullName}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                         {inv.booking.bookingCode} • {inv.booking.room ? `P.${inv.booking.room.roomNumber}` : 'Chưa gán'}
                       </div>
                     </td>
 
-                    <td style={{ padding: '1rem' }}>{formatVND(inv.roomCharge)}</td>
+                    <td>{formatVND(inv.roomCharge)}</td>
 
-                    <td style={{ padding: '1rem' }}>
+                    <td>
                       <div>{formatVND(inv.serviceCharge)}</div>
                       {inv.surcharge > 0 && (
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
@@ -365,15 +316,15 @@ function InvoicesPageContent() {
                       )}
                     </td>
 
-                    <td style={{ padding: '1rem', color: 'var(--color-success)' }}>
+                    <td style={{ color: 'var(--color-success)' }}>
                       -{formatVND(inv.depositDeducted)}
                     </td>
 
-                    <td style={{ padding: '1rem', fontWeight: 800, color: 'var(--color-primary)', fontSize: '0.9375rem' }}>
+                    <td style={{ fontWeight: 800, color: 'var(--color-primary)', fontSize: '0.9375rem' }}>
                       {formatVND(inv.finalAmount)}
                     </td>
 
-                    <td style={{ padding: '1rem' }}>
+                    <td>
                       <span
                         style={{
                           display: 'inline-block',
@@ -389,16 +340,18 @@ function InvoicesPageContent() {
                       </span>
                     </td>
 
-                    <td style={{ padding: '1rem', textAlign: 'right' }}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleOpenInvoiceDetail(inv)}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                      >
-                        <Eye size={14} />
-                        <span>Chi tiết</span>
-                      </Button>
+                    <td style={{ textAlign: 'right' }}>
+                      <div className="admin-table-actions">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenInvoiceDetail(inv)}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                        >
+                          <Eye size={14} />
+                          <span>Chi tiết</span>
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -407,14 +360,25 @@ function InvoicesPageContent() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {!loading && totalPages > 1 && (
-          <div style={{ padding: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'center' }}>
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={(page) => setCurrentPage(page)}
-            />
+        {/* Standard Table Footer */}
+        {!loading && (
+          <div className="admin-table-footer">
+            <div className="admin-table-count">
+              {totalCount > 0 ? (
+                <>
+                  Hiển thị <strong>{(currentPage - 1) * 10 + 1} - {Math.min(currentPage * 10, totalCount)}</strong> trên tổng số <strong>{totalCount}</strong> hóa đơn
+                </>
+              ) : (
+                <span>Không có hóa đơn</span>
+              )}
+            </div>
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
+            )}
           </div>
         )}
       </div>

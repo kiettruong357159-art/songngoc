@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifySessionToken, SESSION_COOKIE_NAME, requirePermission, hashPassword } from '@/lib/auth';
+import { MAX_LIST_LIMIT } from '@/lib/constants';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,6 +14,7 @@ export async function GET(request: NextRequest) {
 
     const [users, roles] = await Promise.all([
       db.user.findMany({
+        take: MAX_LIST_LIMIT,
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,

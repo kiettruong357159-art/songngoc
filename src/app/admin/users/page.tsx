@@ -1,22 +1,18 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
-  Users, 
   UserPlus, 
   Key, 
   Edit, 
-  Trash2, 
   ShieldCheck, 
   RefreshCw,
-  Search,
-  Lock,
-  CheckCircle,
-  XCircle
+  Search
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import CustomSelect, { SelectOption } from '@/components/ui/CustomSelect';
+import Pagination from '@/components/ui/Pagination';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 
@@ -47,7 +43,13 @@ export default function AdminUsersPage() {
   const [roles, setRoles] = useState<RoleData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Filters & Pagination
   const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   // Modal create/edit user
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -249,39 +251,58 @@ export default function AdminUsersPage() {
     label: `${r.name} (${r.code})`,
   }));
 
-  const filteredUsers = users.filter((u) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
-      u.name.toLowerCase().includes(q) ||
-      u.username.toLowerCase().includes(q) ||
-      (u.phone && u.phone.includes(q))
-    );
-  });
+  const roleFilterOptions: SelectOption[] = [
+    { value: 'ALL', label: `Tất cả vai trò (${users.length})` },
+    ...roles.map((r) => ({
+      value: r.id,
+      label: `${r.name} (${users.filter((u) => u.roleId === r.id).length})`,
+    })),
+  ];
+
+  const statusFilterOptions: SelectOption[] = [
+    { value: 'ALL', label: 'Tất cả trạng thái' },
+    { value: 'ACTIVE', label: `Đang hoạt động (${users.filter((u) => u.isActive).length})` },
+    { value: 'INACTIVE', label: `Tạm khóa (${users.filter((u) => !u.isActive).length})` },
+  ];
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, roleFilter, statusFilter]);
+
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) => {
+      const matchRole = roleFilter === 'ALL' || u.roleId === roleFilter;
+      const matchStatus =
+        statusFilter === 'ALL' ||
+        (statusFilter === 'ACTIVE' ? u.isActive : !u.isActive);
+
+      if (!matchRole || !matchStatus) return false;
+      if (!search.trim()) return true;
+
+      const q = search.toLowerCase();
+      return (
+        u.name.toLowerCase().includes(q) ||
+        u.username.toLowerCase().includes(q) ||
+        (u.phone && u.phone.includes(q))
+      );
+    });
+  }, [users, roleFilter, statusFilter, search]);
+
+  const totalPages = Math.ceil(filteredUsers.length / pageSize) || 1;
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredUsers.slice(start, start + pageSize);
+  }, [filteredUsers, currentPage, pageSize]);
 
   return (
     <div>
-      {/* Page Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <div>
-          <h1 className="serif-heading" style={{ fontSize: '1.875rem', color: 'var(--color-primary)' }}>
-            Quản Lý Nhân Viên & Phân Quyền (RBAC)
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Phân quyền nghiêm ngặt cho Quản trị viên, Lễ tân và Buồng phòng với mật khẩu mã hóa PBKDF2.
-          </p>
+      {/* Standard Action Header */}
+      <div className="admin-action-header">
+        <div className="admin-action-header-left">
+          {/* Breadcrumb handled by layout */}
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="admin-action-header-right">
           <Button
             variant="outline"
             size="sm"
@@ -305,74 +326,52 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Search Input Bar */}
-      <div
-        className="glass-panel"
-        style={{
-          padding: '1.25rem',
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <div style={{ position: 'relative', maxWidth: '360px' }}>
-          <Search
-            size={16}
-            style={{
-              position: 'absolute',
-              left: '0.75rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--color-text-muted)',
-            }}
-          />
+      {/* Standard Filter Card */}
+      <div className="admin-filter-card">
+        {/* Search Input */}
+        <div className="admin-search-wrapper">
+          <Search size={16} className="admin-search-icon" />
           <input
             type="text"
             placeholder="Tìm theo tên, tài khoản, số điện thoại..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.55rem 0.75rem 0.55rem 2.25rem',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-bg)',
-              color: 'var(--color-text)',
-              fontSize: '0.875rem',
-            }}
+            className="admin-search-input"
+          />
+        </div>
+
+        {/* Role Filter */}
+        <div className="admin-filter-control" style={{ width: '220px' }}>
+          <CustomSelect
+            options={roleFilterOptions}
+            value={roleFilter}
+            onChange={(val) => setRoleFilter(val)}
+            placeholder="Lọc vai trò..."
+          />
+        </div>
+
+        {/* Status Filter */}
+        <div className="admin-filter-control" style={{ width: '190px' }}>
+          <CustomSelect
+            options={statusFilterOptions}
+            value={statusFilter}
+            onChange={(val) => setStatusFilter(val)}
+            placeholder="Trạng thái..."
           />
         </div>
       </div>
 
-      {/* Users Table */}
-      <div
-        className="glass-panel"
-        style={{
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          overflow: 'hidden',
-        }}
-      >
+      {/* Standard Table Card */}
+      <div className="admin-table-card">
         <div className="table-responsive">
-          <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+          <table className="admin-table">
             <thead>
-              <tr
-                style={{
-                  backgroundColor: 'var(--color-bg)',
-                  borderBottom: '2px solid var(--color-border)',
-                  color: 'var(--color-text-muted)',
-                  fontSize: '0.75rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                <th style={{ padding: '0.875rem 1rem' }}>Họ và tên & Username</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Vai trò RBAC</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Liên hệ</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Trạng thái</th>
-                <th style={{ padding: '0.875rem 1rem', textAlign: 'right' }}>Thao tác</th>
+              <tr>
+                <th>Họ và tên & Username</th>
+                <th>Vai trò RBAC</th>
+                <th>Liên hệ</th>
+                <th>Trạng thái</th>
+                <th style={{ textAlign: 'right' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -383,34 +382,26 @@ export default function AdminUsersPage() {
                     <div>Đang tải danh sách nhân viên...</div>
                   </td>
                 </tr>
-              ) : filteredUsers.length === 0 ? (
+              ) : paginatedUsers.length === 0 ? (
                 <tr>
                   <td colSpan={5} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--color-text-muted)' }}>
-                    Không có nhân viên nào phù hợp.
+                    Không có nhân viên nào phù hợp với bộ lọc.
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => {
+                paginatedUsers.map((user) => {
                   const isSuperAdmin = user.role.code === 'ADMIN';
 
                   return (
-                    <tr
-                      key={user.id}
-                      style={{
-                        borderBottom: '1px solid var(--color-border)',
-                        transition: 'background-color var(--transition-fast)',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-bg)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      <td style={{ padding: '1rem' }}>
+                    <tr key={user.id}>
+                      <td>
                         <div style={{ fontWeight: 700, color: 'var(--color-primary)' }}>{user.name}</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                           @{user.username}
                         </div>
                       </td>
 
-                      <td style={{ padding: '1rem' }}>
+                      <td>
                         <span
                           style={{
                             display: 'inline-flex',
@@ -430,14 +421,14 @@ export default function AdminUsersPage() {
                         </span>
                       </td>
 
-                      <td style={{ padding: '1rem' }}>
+                      <td>
                         <div>{user.phone || 'Chưa cập nhật SĐT'}</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                           {user.email || '—'}
                         </div>
                       </td>
 
-                      <td style={{ padding: '1rem' }}>
+                      <td>
                         <span
                           style={{
                             display: 'inline-block',
@@ -453,13 +444,14 @@ export default function AdminUsersPage() {
                         </span>
                       </td>
 
-                      <td style={{ padding: '1rem', textAlign: 'right' }}>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.4rem' }}>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="admin-table-actions">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleOpenResetPassword(user)}
                             title="Đổi mật khẩu"
+                            className="admin-row-action-btn"
                           >
                             <Key size={13} />
                           </Button>
@@ -468,6 +460,7 @@ export default function AdminUsersPage() {
                             size="sm"
                             onClick={() => handleOpenEdit(user)}
                             title="Sửa thông tin"
+                            className="admin-row-action-btn"
                           >
                             <Edit size={13} />
                           </Button>
@@ -488,6 +481,28 @@ export default function AdminUsersPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Standard Table Footer */}
+        {!loading && (
+          <div className="admin-table-footer">
+            <div className="admin-table-count">
+              {filteredUsers.length > 0 ? (
+                <>
+                  Hiển thị <strong>{(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredUsers.length)}</strong> trên tổng số <strong>{filteredUsers.length}</strong> nhân viên
+                </>
+              ) : (
+                <span>Không có nhân viên</span>
+              )}
+            </div>
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Modal Add / Edit User */}

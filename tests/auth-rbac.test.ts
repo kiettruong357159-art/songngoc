@@ -60,4 +60,32 @@ describe('Auth & RBAC Discipline', () => {
     // Empty or invalid
     expect(hasPermission([], 'rooms:view')).toBe(false);
   });
+
+  it('retrieves user from Cookie header via getCurrentUserFromCookie', async () => {
+    const { getCurrentUserFromCookie, SESSION_COOKIE_NAME } = await import('../src/lib/auth');
+    const token = createSessionToken({
+      userId: 'u2',
+      username: 'receptionist',
+      role: 'RECEPTIONIST',
+      permissions: ['bookings:*'],
+    });
+
+    // Case 1: Standard Request with Cookie header
+    const req = new Request('http://localhost:3000/api/admin/dashboard', {
+      headers: {
+        cookie: `${SESSION_COOKIE_NAME}=${token}; other_cookie=123`,
+      },
+    });
+
+    const user = await getCurrentUserFromCookie(req);
+    expect(user).not.toBeNull();
+    expect(user?.username).toBe('receptionist');
+    expect(user?.role).toBe('RECEPTIONIST');
+
+    // Case 2: Request without cookie
+    const emptyReq = new Request('http://localhost:3000/api/admin/dashboard');
+    const noUser = await getCurrentUserFromCookie(emptyReq);
+    expect(noUser).toBeNull();
+  });
 });
+

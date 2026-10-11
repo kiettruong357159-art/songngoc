@@ -3,10 +3,20 @@ import { db } from '@/lib/db';
 import { getRoomTypeAvailability } from '@/lib/availability';
 import { calculateNights, calculateBookingPricing } from '@/lib/pricing';
 import { generateVietQRUrl } from '@/lib/vietqr';
+import { CreatePublicBookingSchema } from '@/lib/validation/schemas';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const parsed = CreatePublicBookingSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Vui lòng điền đầy đủ các thông tin bắt buộc' },
+        { status: 400 }
+      );
+    }
+
     const {
       fullName,
       phone,
@@ -14,18 +24,11 @@ export async function POST(request: NextRequest) {
       roomTypeId,
       checkIn: checkInStr,
       checkOut: checkOutStr,
-      adults = 1,
-      children = 0,
+      adults,
+      children,
       specialRequests,
-      paymentMethod = 'COUNTER', // COUNTER or VIETQR
-    } = body;
-
-    if (!fullName || !phone || !roomTypeId || !checkInStr || !checkOutStr) {
-      return NextResponse.json(
-        { success: false, error: 'Vui lòng điền đầy đủ các thông tin bắt buộc' },
-        { status: 400 }
-      );
-    }
+      paymentMethod, // COUNTER or VIETQR
+    } = parsed.data;
 
     const cleanPhone = String(phone).trim().replace(/[\s.-]/g, '');
     if (!/^(0|\+84)[0-9]{9}$/.test(cleanPhone)) {

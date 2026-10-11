@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Phone, Calendar, Search, LogIn, Menu, X } from 'lucide-react';
+import { Phone, Calendar, Search, Menu, X } from 'lucide-react';
 
 export const PublicHeader: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -175,27 +175,6 @@ export const PublicHeader: React.FC = () => {
           >
             <Calendar size={15} />
             <span>Đặt phòng</span>
-          </Link>
-
-          <Link
-            href="/login"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.375rem',
-              padding: '0.5rem 0.75rem',
-              backgroundColor: 'transparent',
-              color: 'var(--color-text-muted)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              fontWeight: 500,
-              fontSize: '0.825rem',
-              textDecoration: 'none',
-            }}
-            title="Đăng nhập Lễ tân & Quản trị"
-          >
-            <LogIn size={15} />
-            <span className="desktop-text">Nội bộ</span>
           </Link>
 
           {/* Mobile hamburger toggle */}

@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { calculateInvoiceSettlement, calculateBookingPricing, formatVND } from '../src/lib/pricing';
 import { generateVietQRUrl, DEFAULT_HOTEL_BANK } from '../src/lib/vietqr';
-import { hashPassword, verifyPassword, hasPermission } from '../src/lib/auth';
+import { hasPermission } from '../src/lib/auth';
 import { isDateOverlapping } from '../src/lib/availability';
 
 describe('End-to-End Hotel System Lifecycle', () => {

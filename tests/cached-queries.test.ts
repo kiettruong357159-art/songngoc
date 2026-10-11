@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { getCachedRoomTypeBySlug, getCachedActiveRoomTypes } from '@/lib/cached-queries';
-import type { ActionResponse, PaginatedResponse } from '@/lib/types/api';
 
 describe('Task 3: Envelopes, Type Safety & React.cache() Query Deduplication', () => {
   it('defines ActionResponse and PaginatedResponse in src/lib/types/api.ts', () => {

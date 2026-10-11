@@ -96,6 +96,52 @@ export function verifySessionToken(token: string): SessionPayload | null {
 }
 
 /**
+ * Lấy thông tin phiên người dùng hiện tại từ Cookie
+ * Hỗ trợ 2 nguồn theo quy chuẩn:
+ * 1. Header Cookie của Request (API route / fetch / test)
+ * 2. cookies() của next/headers (Server Component, Server Action)
+ */
+export async function getCurrentUserFromCookie(
+  request?: Request
+): Promise<SessionPayload | null> {
+  let token: string | undefined;
+
+  // 1. Thử lấy từ Request object nếu được truyền vào
+  if (request) {
+    const reqWithCookies = request as { cookies?: { get: (name: string) => { value?: string } | undefined } };
+    if (typeof reqWithCookies.cookies?.get === 'function') {
+      token = reqWithCookies.cookies.get(SESSION_COOKIE_NAME)?.value;
+    }
+    if (!token) {
+      const cookieHeader = request.headers.get('cookie');
+      if (cookieHeader) {
+        const match = cookieHeader
+          .split(';')
+          .map((c) => c.trim())
+          .find((c) => c.startsWith(`${SESSION_COOKIE_NAME}=`));
+        if (match) {
+          token = match.substring(SESSION_COOKIE_NAME.length + 1);
+        }
+      }
+    }
+  }
+
+  // 2. Fallback sang next/headers cookies() (Next.js 15 async cookies)
+  if (!token) {
+    try {
+      const { cookies } = await import('next/headers');
+      const cookieStore = await cookies();
+      token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+    } catch {
+      // Bỏ qua nếu chạy ngoài request scope hoặc môi trường kiểm thử
+    }
+  }
+
+  if (!token) return null;
+  return verifySessionToken(token);
+}
+
+/**
  * Kiểm tra phân quyền RBAC:
  * - Hỗ trợ quyền siêu quản trị: ["*"]
  * - Hỗ trợ quyền chính xác: "rooms:view"

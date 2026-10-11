@@ -171,7 +171,7 @@ export function AdminTableSkeleton({ rows = 6 }: { rows?: number }) {
         </div>
 
         {/* Data rows */}
-        {Array.from({ length: rows }).map((_, idx) => (
+        {Array.from(Array(rows).keys()).map((idx) => (
           <div
             key={idx}
             className="grid grid-cols-6 gap-4 py-4 px-4 border-b border-[var(--color-border)] items-center"

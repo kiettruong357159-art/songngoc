@@ -240,6 +240,16 @@ input, textarea, select {
 .admin-breadcrumb-root {
   font-size: 0.85rem;
   color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.admin-breadcrumb-root:hover {
+  color: var(--color-primary);
+}
+
+.admin-breadcrumb-category {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
 }
 
 .admin-breadcrumb-sep {
@@ -257,6 +267,7 @@ input, textarea, select {
 
 @media (max-width: 640px) {
   .admin-breadcrumb-root,
+  .admin-breadcrumb-category,
   .admin-breadcrumb-sep {
     display: none;
   }
@@ -480,3 +491,192 @@ input, textarea, select {
     gap: 1.25rem;
   }
 }
+
+/* ==========================================================================
+   Standardized Admin UI Layout System (PROJECT_RULES_TEMPLATE & Taste Skill)
+   ========================================================================== */
+
+/* 1. Admin Top Action Bar */
+.admin-action-header {
+  display: flex;
+  align-items: center;
+  justifyContent: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-action-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.admin-action-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* 2. Admin Filter Bar Card */
+.admin-filter-card {
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.admin-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.admin-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.admin-search-input {
+  width: 100%;
+  padding: 0.55rem 0.75rem 0.55rem 2.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.admin-search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(15, 76, 58, 0.12);
+}
+
+.admin-filter-control {
+  min-width: 180px;
+  max-width: 260px;
+}
+
+@media (max-width: 768px) {
+  .admin-filter-control {
+    min-width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* 3. Admin Table Container & Table Styles */
+.admin-table-card {
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.admin-table {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.admin-table thead tr {
+  background-color: var(--color-bg);
+  border-bottom: 2px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-table th {
+  padding: 0.875rem 1rem;
+  white-space: nowrap;
+}
+
+.admin-table tbody tr {
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--transition-fast);
+}
+
+.admin-table tbody tr:hover {
+  background-color: var(--color-bg);
+}
+
+.admin-table td {
+  padding: 0.875rem 1rem;
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+/* 4. Table Action Buttons Column */
+.admin-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.375rem;
+}
+
+.admin-row-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  gap: 0.35rem;
+}
+
+.admin-row-action-btn:hover {
+  background-color: var(--color-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.admin-row-action-btn.danger:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+/* 5. Admin Table Footer (Pagination & Item Range) */
+.admin-table-footer {
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.admin-table-count {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+

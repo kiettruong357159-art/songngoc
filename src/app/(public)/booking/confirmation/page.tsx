@@ -3,7 +3,6 @@
 import React, { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { CheckCircle2, Copy, Check, QrCode, Search, Home, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { formatVND } from '@/lib/utils';

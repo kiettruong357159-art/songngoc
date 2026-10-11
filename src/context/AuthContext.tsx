@@ -14,9 +14,12 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<SessionPayload | null>(null);
-  const [loading, setLoading] = useState(true);
+export const AuthProvider: React.FC<{
+  children: React.ReactNode;
+  initialUser?: SessionPayload | null;
+}> = ({ children, initialUser = null }) => {
+  const [user, setUser] = useState<SessionPayload | null>(initialUser);
+  const [loading, setLoading] = useState(!initialUser);
   const router = useRouter();
 
   const fetchCurrentUser = useCallback(async () => {
@@ -40,8 +43,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
-    fetchCurrentUser();
-  }, [fetchCurrentUser]);
+    // Nếu chưa có initialUser thì mới cần gọi API me ngay lập tức
+    if (!initialUser) {
+      fetchCurrentUser();
+    }
+  }, [fetchCurrentUser, initialUser]);
 
   const can = useCallback(
     (permission: string): boolean => {

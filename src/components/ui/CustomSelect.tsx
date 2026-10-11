@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useId } from 'react';
+import React, { useState, useRef, useEffect, useId, useLayoutEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Search, X } from 'lucide-react';
 
 export interface SelectOption {
@@ -9,6 +10,11 @@ export interface SelectOption {
   sublabel?: string;
   disabled?: boolean;
 }
+
+/** Chiều cao tối đa của menu (px), dùng để quyết định lật lên/xuống */
+const MENU_MAX_HEIGHT = 320;
+/** z-index cao hơn mọi modal (1000) để dropdown trong form modal vẫn hiển thị */
+const SELECT_MENU_Z_INDEX = 10000;
 
 interface CustomSelectProps {
   options: SelectOption[];
@@ -37,7 +43,26 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top?: number; bottom?: number; left: number; width: number } | null>(null);
+
+  /**
+   * Tính vị trí menu theo trigger: tự lật lên khi thiếu chỗ phía dưới, kẹp trong màn hình
+   */
+  const updateMenuPosition = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUp = spaceBelow < MENU_MAX_HEIGHT && rect.top > spaceBelow;
+    const width = rect.width;
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+    setMenuPos(
+      openUp
+        ? { bottom: window.innerHeight - rect.top + 4, left, width }
+        : { top: rect.bottom + 4, left, width }
+    );
+  }, []);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
@@ -48,10 +73,13 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       (opt.sublabel && opt.sublabel.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // Đóng khi click bên ngoài hoặc nhấn phím Escape
+  // Đóng khi click bên ngoài (cả trigger lẫn menu portal) hoặc nhấn phím Escape
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const inTrigger = containerRef.current?.contains(target);
+      const inMenu = menuRef.current?.contains(target);
+      if (!inTrigger && !inMenu) {
         setIsOpen(false);
       }
     };
@@ -71,14 +99,30 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     };
   }, [isOpen]);
 
+  // Định vị menu khi mở và tính lại khi scroll (capture) / resize; bỏ qua scroll bên trong menu
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    updateMenuPosition();
+    const handleScroll = (event: Event) => {
+      if (menuRef.current && event.target instanceof Node && menuRef.current.contains(event.target)) return;
+      updateMenuPosition();
+    };
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', updateMenuPosition);
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', updateMenuPosition);
+    };
+  }, [isOpen, updateMenuPosition]);
+
   // Focus ô tìm kiếm khi mở menu
   useEffect(() => {
-    if (isOpen && searchInputRef.current) {
+    if (isOpen && menuPos && searchInputRef.current) {
       searchInputRef.current.focus();
-    } else {
+    } else if (!isOpen) {
       setSearchTerm('');
     }
-  }, [isOpen]);
+  }, [isOpen, menuPos]);
 
   const handleSelect = (val: string, isDisabled?: boolean) => {
     if (isDisabled) return;
@@ -164,19 +208,21 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         </div>
       </div>
 
-      {isOpen && (
+      {isOpen && menuPos && createPortal(
         <div
+          ref={menuRef}
           className="glass-panel animate-slide-down"
           style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            left: 0,
-            right: 0,
-            zIndex: 999,
+            position: 'fixed',
+            top: menuPos.top,
+            bottom: menuPos.bottom,
+            left: menuPos.left,
+            width: menuPos.width,
+            zIndex: SELECT_MENU_Z_INDEX,
             borderRadius: 'var(--radius-md)',
             boxShadow: 'var(--shadow-lg)',
             overflow: 'hidden',
-            maxHeight: '320px',
+            maxHeight: `${MENU_MAX_HEIGHT}px`,
             display: 'flex',
             flexDirection: 'column',
           }}
@@ -276,7 +322,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               })
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

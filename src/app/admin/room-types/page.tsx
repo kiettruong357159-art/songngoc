@@ -1,21 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   Bed, 
   Edit, 
   Users, 
   Layers, 
-  DollarSign, 
   RefreshCw,
-  Sparkles,
-  CheckCircle,
-  Clock,
-  Maximize2
+  Maximize2,
+  Search
 } from 'lucide-react';
 import { formatVND } from '@/lib/utils';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import CustomSelect, { SelectOption } from '@/components/ui/CustomSelect';
 import { useToast } from '@/context/ToastContext';
 
 interface RoomTypeData {
@@ -43,6 +41,10 @@ export default function AdminRoomTypesPage() {
   const [roomTypes, setRoomTypes] = useState<RoomTypeData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Filters
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
 
   // Edit Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -141,29 +143,34 @@ export default function AdminRoomTypesPage() {
     }
   };
 
+  const statusFilterOptions: SelectOption[] = [
+    { value: 'ALL', label: `Tất cả trạng thái (${roomTypes.length})` },
+    { value: 'ACTIVE', label: `Đang kinh doanh (${roomTypes.filter((r) => r.isActive).length})` },
+    { value: 'INACTIVE', label: `Tạm ngưng (${roomTypes.filter((r) => !r.isActive).length})` },
+  ];
+
+  const filteredRoomTypes = useMemo(() => {
+    return roomTypes.filter((rt) => {
+      const matchStatus =
+        statusFilter === 'ALL' ||
+        (statusFilter === 'ACTIVE' ? rt.isActive : !rt.isActive);
+
+      if (!matchStatus) return false;
+      if (!search.trim()) return true;
+
+      const q = search.toLowerCase();
+      return rt.name.toLowerCase().includes(q) || rt.slug.toLowerCase().includes(q);
+    });
+  }, [roomTypes, statusFilter, search]);
+
   return (
     <div>
-      {/* Page Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <div>
-          <h1 className="serif-heading" style={{ fontSize: '1.875rem', color: 'var(--color-primary)' }}>
-            Quản Lý Hạng Phòng & Bảng Giá
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Thiết lập đơn giá ngày thường, cuối tuần, nghỉ giờ và công suất phòng phục vụ khách đặt online/tại quầy.
-          </p>
+      {/* Standard Action Header */}
+      <div className="admin-action-header">
+        <div className="admin-action-header-left">
+          {/* Breadcrumb handled by layout */}
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="admin-action-header-right">
           <Button
             variant="outline"
             size="sm"
@@ -177,21 +184,60 @@ export default function AdminRoomTypesPage() {
         </div>
       </div>
 
+      {/* Standard Filter Card */}
+      <div className="admin-filter-card">
+        {/* Search Input */}
+        <div className="admin-search-wrapper">
+          <Search size={16} className="admin-search-icon" />
+          <input
+            type="text"
+            placeholder="Tìm theo tên hạng phòng, slug..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="admin-search-input"
+          />
+        </div>
+
+        {/* Status Filter */}
+        <div className="admin-filter-control" style={{ width: '220px' }}>
+          <CustomSelect
+            options={statusFilterOptions}
+            value={statusFilter}
+            onChange={(val) => setStatusFilter(val)}
+            placeholder="Lọc trạng thái..."
+          />
+        </div>
+      </div>
+
       {/* Room Types Cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '1.5rem',
-        }}
-      >
-        {loading ? (
-          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem 1rem' }}>
-            <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 0.5rem' }} />
-            <div>Đang tải cấu hình hạng phòng...</div>
-          </div>
-        ) : (
-          roomTypes.map((rt) => (
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--color-text-muted)' }}>
+          <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 0.5rem' }} />
+          <div>Đang tải cấu hình hạng phòng...</div>
+        </div>
+      ) : filteredRoomTypes.length === 0 ? (
+        <div
+          className="glass-panel"
+          style={{
+            textAlign: 'center',
+            padding: '3rem 1rem',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--color-border)',
+            color: 'var(--color-text-muted)',
+            backgroundColor: 'var(--color-surface)',
+          }}
+        >
+          Không có hạng phòng nào phù hợp với bộ lọc.
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '1.5rem',
+          }}
+        >
+          {filteredRoomTypes.map((rt) => (
             <div
               key={rt.id}
               className="glass-panel"
@@ -289,9 +335,9 @@ export default function AdminRoomTypesPage() {
                 <span>Chỉnh sửa giá & Cấu hình</span>
               </Button>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Edit Modal */}
       <Modal

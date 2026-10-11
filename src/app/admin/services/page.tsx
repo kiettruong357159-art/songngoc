@@ -2,23 +2,22 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
-  Coffee, 
   Plus, 
   Edit2, 
-  CheckCircle, 
-  XCircle, 
   RefreshCw,
   Search,
-  Shirt,
-  Utensils,
-  Car
+  Tags
 } from 'lucide-react';
 import { formatVND } from '@/lib/utils';
-import { SERVICE_CATEGORIES, SERVICE_CATEGORY_LABELS } from '@/lib/constants';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import CustomSelect, { SelectOption } from '@/components/ui/CustomSelect';
+import Pagination from '@/components/ui/Pagination';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
+import { useServiceCategories } from '@/hooks/useServiceCategories';
+import { ServiceCategoryIcon } from '@/components/admin/ServiceCategoryIcon';
+import { ServiceCategoryManager } from '@/components/admin/ServiceCategoryManager';
 
 interface ServiceItem {
   id: string;
@@ -31,14 +30,20 @@ interface ServiceItem {
 
 export default function AdminServicesPage() {
   const { showToast } = useToast();
+  const { can } = useAuth();
+  const canManage = can('services:manage');
+  const { categories, isFallback, reload: reloadCategories } = useServiceCategories();
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Filters
+  // Filters & Pagination
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   // Modal create / edit
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -74,6 +79,11 @@ export default function AdminServicesPage() {
   useEffect(() => {
     fetchServices();
   }, [fetchServices]);
+
+  // Reset to page 1 on filter/search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [categoryFilter, search]);
 
   const handleOpenAdd = () => {
     setEditingService(null);
@@ -192,51 +202,43 @@ export default function AdminServicesPage() {
     });
   }, [services, categoryFilter, search]);
 
-  const categorySelectOptions: SelectOption[] = Object.entries(SERVICE_CATEGORY_LABELS).map(
-    ([key, label]) => ({
-      value: key,
-      label,
-    })
-  );
+  const totalPages = Math.ceil(filteredServices.length / pageSize) || 1;
+  const paginatedServices = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredServices.slice(start, start + pageSize);
+  }, [filteredServices, currentPage, pageSize]);
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'MINIBAR':
-        return <Coffee size={15} />;
-      case 'LAUNDRY':
-        return <Shirt size={15} />;
-      case 'FOOD':
-        return <Utensils size={15} />;
-      case 'TRANSPORT':
-        return <Car size={15} />;
-      default:
-        return <Coffee size={15} />;
-    }
-  };
+  // Options cho bộ lọc danh mục
+  const categoryFilterOptions: SelectOption[] = useMemo(() => [
+    { value: 'ALL', label: `Tất cả danh mục (${services.length})` },
+    ...categories.map((c) => ({
+      value: c.code,
+      label: `${c.name} (${services.filter((s) => s.category === c.code).length})`,
+    })),
+  ], [categories, services]);
+
+  // Danh mục hiển thị trong form: danh mục đang bật + danh mục hiện tại của dịch vụ đang sửa (nếu đã tắt)
+  const categorySelectOptions: SelectOption[] = categories
+    .filter((c) => c.isActive || c.code === formCategory)
+    .map((c) => ({
+      value: c.code,
+      label: c.name,
+    }));
+
+  const getCategoryName = (code: string) => categories.find((c) => c.code === code)?.name || code;
+
+  const getCategoryIcon = (code: string) => (
+    <ServiceCategoryIcon icon={categories.find((c) => c.code === code)?.icon} size={15} />
+  );
 
   return (
     <div>
-      {/* Page Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <div>
-          <h1 className="serif-heading" style={{ fontSize: '1.875rem', color: 'var(--color-primary)' }}>
-            Danh Mục Dịch Vụ & Minibar
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Quản lý bảng giá các mặt hàng đồ uống minibar, dịch vụ giặt ủi và tiện ích gia tăng.
-          </p>
+      {/* Standard Action Header */}
+      <div className="admin-action-header">
+        <div className="admin-action-header-left">
+          {/* Breadcrumb handled by layout */}
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="admin-action-header-right">
           <Button
             variant="outline"
             size="sm"
@@ -247,6 +249,18 @@ export default function AdminServicesPage() {
             <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
             <span>Làm mới</span>
           </Button>
+
+          {canManage && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCategoryModalOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <Tags size={15} />
+              <span>Quản lý danh mục</span>
+            </Button>
+          )}
 
           <Button
             variant="primary"
@@ -260,127 +274,94 @@ export default function AdminServicesPage() {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div
-        className="glass-panel"
-        style={{
-          padding: '1.25rem',
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          marginBottom: '1.5rem',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: '1rem',
-          justifyContent: 'space-between',
-        }}
-      >
-        {/* Category Pills */}
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={() => setCategoryFilter('ALL')}
-            style={{
-              padding: '0.4rem 0.85rem',
-              borderRadius: 'var(--radius-full)',
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              backgroundColor: categoryFilter === 'ALL' ? 'var(--color-primary)' : 'var(--color-bg)',
-              color: categoryFilter === 'ALL' ? '#ffffff' : 'var(--color-text)',
-              border: '1px solid var(--color-border)',
-              cursor: 'pointer',
-            }}
-          >
-            Tất cả ({services.length})
-          </button>
-
-          {Object.entries(SERVICE_CATEGORY_LABELS).map(([catKey, label]) => {
-            const count = services.filter((s) => s.category === catKey).length;
-            return (
-              <button
-                key={catKey}
-                type="button"
-                onClick={() => setCategoryFilter(catKey)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: 'var(--radius-full)',
-                  fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  backgroundColor: categoryFilter === catKey ? 'var(--color-primary)' : 'var(--color-bg)',
-                  color: categoryFilter === catKey ? '#ffffff' : 'var(--color-text)',
-                  border: '1px solid var(--color-border)',
-                  cursor: 'pointer',
-                }}
-              >
-                {getCategoryIcon(catKey)}
-                <span>{label} ({count})</span>
-              </button>
-            );
-          })}
-        </div>
-
+      {/* Standard Filter Card */}
+      <div className="admin-filter-card">
         {/* Search Input */}
-        <div style={{ position: 'relative', width: '260px' }}>
-          <Search
-            size={16}
-            style={{
-              position: 'absolute',
-              left: '0.75rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--color-text-muted)',
-            }}
-          />
+        <div className="admin-search-wrapper">
+          <Search size={16} className="admin-search-icon" />
           <input
             type="text"
-            placeholder="Tìm tên dịch vụ..."
+            placeholder="Tìm tên dịch vụ, đơn vị..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.5rem 0.75rem 0.5rem 2.25rem',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-bg)',
-              fontSize: '0.875rem',
-            }}
+            className="admin-search-input"
+          />
+        </div>
+
+        {/* Category Dropdown */}
+        <div className="admin-filter-control" style={{ width: '260px' }}>
+          <CustomSelect
+            options={categoryFilterOptions}
+            value={categoryFilter}
+            onChange={(val) => setCategoryFilter(val)}
+            placeholder="Chọn danh mục..."
           />
         </div>
       </div>
 
-      {/* Services Table */}
-      <div
-        className="glass-panel"
-        style={{
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          overflow: 'hidden',
-        }}
-      >
+      {/* Category Pills (Quick Filter) */}
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+        <button
+          type="button"
+          onClick={() => setCategoryFilter('ALL')}
+          style={{
+            padding: '0.35rem 0.75rem',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            backgroundColor: categoryFilter === 'ALL' ? 'var(--color-primary)' : 'var(--color-surface)',
+            color: categoryFilter === 'ALL' ? '#ffffff' : 'var(--color-text)',
+            border: '1px solid var(--color-border)',
+            cursor: 'pointer',
+            transition: 'all var(--transition-fast)',
+          }}
+        >
+          Tất cả ({services.length})
+        </button>
+
+        {categories.map((cat) => {
+          const catKey = cat.code;
+          const label = cat.name;
+          const count = services.filter((s) => s.category === catKey).length;
+          return (
+            <button
+              key={catKey}
+              type="button"
+              onClick={() => setCategoryFilter(catKey)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.35rem 0.75rem',
+                borderRadius: 'var(--radius-full)',
+                fontSize: '0.8125rem',
+                fontWeight: 600,
+                backgroundColor: categoryFilter === catKey ? 'var(--color-primary)' : 'var(--color-surface)',
+                color: categoryFilter === catKey ? '#ffffff' : 'var(--color-text)',
+                border: '1px solid var(--color-border)',
+                cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
+              }}
+            >
+              {getCategoryIcon(catKey)}
+              <span>{label} ({count})</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Standard Table Card */}
+      <div className="admin-table-card">
         <div className="table-responsive">
-          <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+          <table className="admin-table">
             <thead>
-              <tr
-                style={{
-                  backgroundColor: 'var(--color-bg)',
-                  borderBottom: '2px solid var(--color-border)',
-                  color: 'var(--color-text-muted)',
-                  fontSize: '0.75rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                <th style={{ padding: '0.875rem 1rem' }}>Tên dịch vụ</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Danh mục</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Đơn giá</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Đơn vị tính</th>
-                <th style={{ padding: '0.875rem 1rem' }}>Trạng thái</th>
-                <th style={{ padding: '0.875rem 1rem', textAlign: 'right' }}>Thao tác</th>
+              <tr>
+                <th>Tên dịch vụ</th>
+                <th>Danh mục</th>
+                <th>Đơn giá</th>
+                <th>Đơn vị tính</th>
+                <th>Trạng thái</th>
+                <th style={{ textAlign: 'right' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -391,27 +372,19 @@ export default function AdminServicesPage() {
                     <div>Đang tải danh mục...</div>
                   </td>
                 </tr>
-              ) : filteredServices.length === 0 ? (
+              ) : paginatedServices.length === 0 ? (
                 <tr>
                   <td colSpan={6} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--color-text-muted)' }}>
                     Không có dịch vụ nào phù hợp với bộ lọc.
                   </td>
                 </tr>
               ) : (
-                filteredServices.map((service) => (
-                  <tr
-                    key={service.id}
-                    style={{
-                      borderBottom: '1px solid var(--color-border)',
-                      transition: 'background-color var(--transition-fast)',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-bg)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  >
-                    <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--color-primary)' }}>
+                paginatedServices.map((service) => (
+                  <tr key={service.id}>
+                    <td style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
                       {service.name}
                     </td>
-                    <td style={{ padding: '1rem' }}>
+                    <td>
                       <span
                         style={{
                           display: 'inline-flex',
@@ -422,14 +395,14 @@ export default function AdminServicesPage() {
                         }}
                       >
                         {getCategoryIcon(service.category)}
-                        <span>{SERVICE_CATEGORY_LABELS[service.category] || service.category}</span>
+                        <span>{getCategoryName(service.category)}</span>
                       </span>
                     </td>
-                    <td style={{ padding: '1rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+                    <td style={{ fontWeight: 700, color: 'var(--color-primary)' }}>
                       {formatVND(service.price)}
                     </td>
-                    <td style={{ padding: '1rem' }}>{service.unit}</td>
-                    <td style={{ padding: '1rem' }}>
+                    <td>{service.unit}</td>
+                    <td>
                       <span
                         style={{
                           display: 'inline-block',
@@ -444,8 +417,8 @@ export default function AdminServicesPage() {
                         {service.isActive ? 'Đang bán' : 'Tạm ngưng'}
                       </span>
                     </td>
-                    <td style={{ padding: '1rem', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                    <td style={{ textAlign: 'right' }}>
+                      <div className="admin-table-actions">
                         <Button
                           variant="outline"
                           size="sm"
@@ -470,6 +443,28 @@ export default function AdminServicesPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Standard Table Footer */}
+        {!loading && (
+          <div className="admin-table-footer">
+            <div className="admin-table-count">
+              {filteredServices.length > 0 ? (
+                <>
+                  Hiển thị <strong>{(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredServices.length)}</strong> trên tổng số <strong>{filteredServices.length}</strong> dịch vụ
+                </>
+              ) : (
+                <span>Không có dịch vụ</span>
+              )}
+            </div>
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Modal Add / Edit Service */}
@@ -581,6 +576,15 @@ export default function AdminServicesPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Modal quản lý danh mục dịch vụ */}
+      <ServiceCategoryManager
+        isOpen={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
+        categories={categories}
+        isFallback={isFallback}
+        onChanged={reloadCategories}
+      />
     </div>
   );
 }

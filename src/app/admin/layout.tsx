@@ -25,7 +25,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <AuthProvider>
+    <AuthProvider initialUser={session}>
       <AdminUIProvider>
         <div className="admin-layout">
           <AdminSidebar />

@@ -25,68 +25,97 @@ interface NavItem {
   permission?: string;
 }
 
+interface NavGroup {
+  title?: string;
+  items: NavItem[];
+}
+
 export const AdminSidebar: React.FC = () => {
   const pathname = usePathname();
   const { user } = useAuth();
   const { sidebarOpen, setSidebarOpen } = useAdminUI();
 
-  const navItems: NavItem[] = [
+  const navGroups: NavGroup[] = [
     {
-      label: 'Tổng quan (Dashboard)',
-      href: '/admin',
-      icon: <LayoutDashboard size={18} />,
+      items: [
+        {
+          label: 'Tổng quan (Dashboard)',
+          href: '/admin',
+          icon: <LayoutDashboard size={18} />,
+        },
+      ],
     },
     {
-      label: 'Sơ đồ phòng (Grid)',
-      href: '/admin/rooms',
-      icon: <Grid size={18} />,
-      permission: 'rooms:view',
+      title: 'Vận hành',
+      items: [
+        {
+          label: 'Sơ đồ phòng (Grid)',
+          href: '/admin/rooms',
+          icon: <Grid size={18} />,
+          permission: 'rooms:view',
+        },
+        {
+          label: 'Đặt phòng',
+          href: '/admin/bookings',
+          icon: <BookOpen size={18} />,
+          permission: 'rooms:view',
+        },
+        {
+          label: 'Check-in tại quầy',
+          href: '/admin/checkin',
+          icon: <CheckSquare size={18} />,
+          permission: 'rooms:status',
+        },
+      ],
     },
     {
-      label: 'Đặt phòng',
-      href: '/admin/bookings',
-      icon: <BookOpen size={18} />,
-      permission: 'rooms:view',
+      title: 'Dịch vụ & Thu ngân',
+      items: [
+        {
+          label: 'Minibar & Dịch vụ',
+          href: '/admin/services',
+          icon: <Coffee size={18} />,
+          permission: 'services:*',
+        },
+        {
+          label: 'Hóa đơn & Thu ngân',
+          href: '/admin/invoices',
+          icon: <Receipt size={18} />,
+          permission: 'invoices:*',
+        },
+      ],
     },
     {
-      label: 'Check-in tại quầy',
-      href: '/admin/checkin',
-      icon: <CheckSquare size={18} />,
-      permission: 'rooms:status',
-    },
-    {
-      label: 'Minibar & Dịch vụ',
-      href: '/admin/services',
-      icon: <Coffee size={18} />,
-      permission: 'services:*',
-    },
-    {
-      label: 'Hóa đơn & Thu ngân',
-      href: '/admin/invoices',
-      icon: <Receipt size={18} />,
-      permission: 'invoices:*',
-    },
-    {
-      label: 'Cấu hình hạng phòng',
-      href: '/admin/room-types',
-      icon: <BedDouble size={18} />,
-      permission: '*',
-    },
-    {
-      label: 'Nhân viên & Phân quyền',
-      href: '/admin/users',
-      icon: <Users size={18} />,
-      permission: '*',
+      title: 'Quản trị hệ thống',
+      items: [
+        {
+          label: 'Cấu hình hạng phòng',
+          href: '/admin/room-types',
+          icon: <BedDouble size={18} />,
+          permission: '*',
+        },
+        {
+          label: 'Nhân viên & Phân quyền',
+          href: '/admin/users',
+          icon: <Users size={18} />,
+          permission: '*',
+        },
+      ],
     },
   ];
 
   const userPerms = user?.permissions || [];
 
-  // Lọc các mục menu mà nhân viên có quyền truy cập
-  const visibleItems = navItems.filter((item) => {
-    if (!item.permission) return true;
-    return hasPermission(userPerms, item.permission);
-  });
+  // Lọc các mục menu mà nhân viên có quyền truy cập, bỏ nhóm không còn mục nào
+  const visibleGroups = navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        if (!item.permission) return true;
+        return hasPermission(userPerms, item.permission);
+      }),
+    }))
+    .filter((group) => group.items.length > 0);
 
   return (
     <>
@@ -148,33 +177,56 @@ export const AdminSidebar: React.FC = () => {
             flex: 1,
           }}
         >
-          {visibleItems.map((item) => {
-            const isActive = pathname === item.href;
+          {visibleGroups.map((group, groupIndex) => (
+            <div
+              key={group.title || 'root'}
+              style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: groupIndex === 0 ? 0 : '0.75rem' }}
+            >
+              {group.title && (
+                <div
+                  style={{
+                    padding: '0.5rem 0.875rem 0.25rem',
+                    fontSize: '0.6875rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    color: '#94a3b8',
+                    opacity: 0.75,
+                  }}
+                >
+                  {group.title}
+                </div>
+              )}
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setSidebarOpen(false)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.6875rem 0.875rem',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: isActive ? 'var(--color-primary)' : 'transparent',
-                  color: isActive ? '#ffffff' : '#cbd5e1',
-                  fontSize: '0.875rem',
-                  fontWeight: isActive ? 600 : 500,
-                  textDecoration: 'none',
-                  transition: 'all var(--transition-fast)',
-                }}
-              >
-                <span style={{ color: isActive ? 'var(--color-accent)' : '#94a3b8' }}>{item.icon}</span>
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+              {group.items.map((item) => {
+                const isActive = pathname === item.href;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.6875rem 0.875rem',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: isActive ? 'var(--color-primary)' : 'transparent',
+                      color: isActive ? '#ffffff' : '#cbd5e1',
+                      fontSize: '0.875rem',
+                      fontWeight: isActive ? 600 : 500,
+                      textDecoration: 'none',
+                      transition: 'all var(--transition-fast)',
+                    }}
+                  >
+                    <span style={{ color: isActive ? 'var(--color-accent)' : '#94a3b8' }}>{item.icon}</span>
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         {/* User Status Footer */}

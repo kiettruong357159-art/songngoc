@@ -6,7 +6,7 @@ import { getRoomTypeAvailability } from '@/lib/availability';
 import { FloatingBookingBar } from '@/components/booking/FloatingBookingBar';
 import { SafeImage } from '@/components/ui/SafeImage';
 import { Badge } from '@/components/ui/Badge';
-import { Bed, Maximize2, Users, Wifi, ArrowRight, Eye, Check } from 'lucide-react';
+import { Bed, Maximize2, Users, ArrowRight, Eye, Check } from 'lucide-react';
 
 interface RoomsPageProps {
   searchParams: Promise<{

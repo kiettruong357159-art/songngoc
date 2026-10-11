@@ -3,18 +3,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   RefreshCw, 
-  Filter, 
-  Layers, 
-  CheckCircle2, 
-  UserCheck, 
-  AlertCircle, 
-  Sparkles, 
-  Wrench,
-  Search
+  AlertCircle,
+  Search,
+  Plus,
+  Layers,
+  Trash2
 } from 'lucide-react';
 import { RoomData } from '@/components/pms/RoomCard';
 import FloorSection from '@/components/pms/FloorSection';
 import QuickActionModal from '@/components/pms/QuickActionModal';
+import FloorModal from '@/components/admin/FloorModal';
+import RoomModal from '@/components/admin/RoomModal';
+import Modal from '@/components/ui/Modal';
 import { RoomStatus, ROOM_STATUS_META } from '@/lib/constants';
 import { useToast } from '@/context/ToastContext';
 import Button from '@/components/ui/Button';
@@ -26,9 +26,16 @@ interface FloorData {
   rooms: RoomData[];
 }
 
+interface RoomTypeSummary {
+  id: string;
+  name: string;
+  basePrice: number;
+}
+
 export default function AdminRoomsPage() {
   const { showToast } = useToast();
   const [floors, setFloors] = useState<FloorData[]>([]);
+  const [roomTypes, setRoomTypes] = useState<RoomTypeSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -41,17 +48,48 @@ export default function AdminRoomsPage() {
   const [activeRoom, setActiveRoom] = useState<RoomData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Modals for Floor and Room CRUD
+  const [isFloorModalOpen, setIsFloorModalOpen] = useState(false);
+  const [floorToEdit, setFloorToEdit] = useState<{ id: string; name: string; floorNumber: number } | null>(null);
+
+  const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
+  const [roomToEdit, setRoomToEdit] = useState<RoomData | null>(null);
+  const [activeFloorIdForNewRoom, setActiveFloorIdForNewRoom] = useState<string | undefined>(undefined);
+
+  // Delete Confirmation Dialog
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    type: 'floor' | 'room';
+    id: string;
+    name: string;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const fetchRooms = useCallback(async (isSilent = false) => {
     if (!isSilent) setLoading(true);
     else setRefreshing(true);
 
     try {
-      const res = await fetch('/api/admin/rooms');
-      const data = await res.json();
-      if (data.success && Array.isArray(data.floors)) {
-        setFloors(data.floors);
+      const [roomsRes, roomTypesRes] = await Promise.all([
+        fetch('/api/admin/rooms'),
+        fetch('/api/admin/room-types'),
+      ]);
+
+      const roomsData = await roomsRes.json();
+      if (roomsData.success && Array.isArray(roomsData.floors)) {
+        setFloors(roomsData.floors);
       } else {
-        showToast(data.error || 'Không thể tải sơ đồ phòng', 'error');
+        showToast(roomsData.error || 'Không thể tải sơ đồ phòng', 'error');
+      }
+
+      const typesData = await roomTypesRes.json();
+      if (typesData.success && Array.isArray(typesData.roomTypes)) {
+        setRoomTypes(
+          typesData.roomTypes.map((rt: any) => ({
+            id: rt.id,
+            name: rt.name,
+            basePrice: rt.basePrice,
+          }))
+        );
       }
     } catch (err) {
       console.error(err);
@@ -99,6 +137,83 @@ export default function AdminRoomsPage() {
     }
   };
 
+  // Floor CRUD handlers
+  const handleAddFloor = () => {
+    setFloorToEdit(null);
+    setIsFloorModalOpen(true);
+  };
+
+  const handleEditFloor = (floor: { id: string; name: string; floorNumber: number }) => {
+    setFloorToEdit(floor);
+    setIsFloorModalOpen(true);
+  };
+
+  const handleDeleteFloor = (floor: { id: string; name: string; floorNumber: number; roomCount: number }) => {
+    if (floor.roomCount > 0) {
+      showToast(
+        `Không thể xóa "${floor.name}" vì đang có ${floor.roomCount} phòng. Vui lòng chuyển hoặc xóa các phòng trước.`,
+        'error'
+      );
+      return;
+    }
+    setDeleteConfirm({
+      type: 'floor',
+      id: floor.id,
+      name: floor.name,
+    });
+  };
+
+  // Room CRUD handlers
+  const handleAddRoom = (floorId?: string) => {
+    setRoomToEdit(null);
+    setActiveFloorIdForNewRoom(floorId);
+    setIsRoomModalOpen(true);
+  };
+
+  const handleEditRoom = (room: RoomData) => {
+    setRoomToEdit(room);
+    setIsRoomModalOpen(true);
+  };
+
+  const handleDeleteRoom = (room: RoomData) => {
+    if (room.status === 'OCCUPIED') {
+      showToast(`Không thể xóa phòng ${room.roomNumber} vì đang có khách lưu trú!`, 'error');
+      return;
+    }
+    setDeleteConfirm({
+      type: 'room',
+      id: room.id,
+      name: `Phòng ${room.roomNumber}`,
+    });
+  };
+
+  // Execute safe deletion
+  const executeDelete = async () => {
+    if (!deleteConfirm) return;
+    setIsDeleting(true);
+    try {
+      const url =
+        deleteConfirm.type === 'floor'
+          ? `/api/admin/floors/${deleteConfirm.id}`
+          : `/api/admin/rooms/${deleteConfirm.id}`;
+
+      const res = await fetch(url, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message || `Đã xóa ${deleteConfirm.name} thành công`, 'success');
+        setDeleteConfirm(null);
+        fetchRooms(true);
+      } else {
+        showToast(data.error || 'Xóa thất bại', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Lỗi kết nối máy chủ khi xóa', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Tính tổng số phòng theo từng trạng thái
   const allRoomsFlat = floors.flatMap((f) => f.rooms);
   const counts = {
@@ -133,27 +248,12 @@ export default function AdminRoomsPage() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <div>
-          <h1 className="serif-heading" style={{ fontSize: '1.875rem', color: 'var(--color-primary)' }}>
-            Sơ Đồ Buồng Phòng (Room Rack)
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Hiển thị trực quan trạng thái vận hành của toàn bộ phòng homestay theo từng tầng.
-          </p>
+      {/* Standard Action Header */}
+      <div className="admin-action-header">
+        <div className="admin-action-header-left">
+          {/* Breadcrumb handled by layout */}
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="admin-action-header-right">
           <Button
             variant="outline"
             size="sm"
@@ -164,21 +264,35 @@ export default function AdminRoomsPage() {
             <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
             <span>Làm mới</span>
           </Button>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleAddFloor}
+            leftIcon={<Layers size={15} />}
+          >
+            Thêm tầng
+          </Button>
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => handleAddRoom()}
+            leftIcon={<Plus size={15} />}
+          >
+            Thêm phòng
+          </Button>
         </div>
       </div>
 
       {/* Filter and Control Bar */}
       <div
-        className="glass-panel"
+        className="admin-filter-card"
         style={{
-          padding: '1.25rem',
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          marginBottom: '2rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem',
+          marginBottom: '2rem',
         }}
       >
         {/* Top Controls: Search and Floor Tabs */}
@@ -189,6 +303,7 @@ export default function AdminRoomsPage() {
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '1rem',
+            width: '100%',
           }}
         >
           {/* Floor selection tabs */}
@@ -234,31 +349,14 @@ export default function AdminRoomsPage() {
           </div>
 
           {/* Quick Search Input */}
-          <div style={{ position: 'relative', minWidth: '240px', maxWidth: '320px', flex: 1 }}>
-            <Search
-              size={16}
-              style={{
-                position: 'absolute',
-                left: '0.75rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--color-text-muted)',
-              }}
-            />
+          <div className="admin-search-wrapper" style={{ minWidth: '240px', maxWidth: '340px', flex: 1 }}>
+            <Search size={16} className="admin-search-icon" />
             <input
               type="text"
               placeholder="Tìm số phòng, tên khách..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem 0.75rem 0.5rem 2.25rem',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--color-border)',
-                backgroundColor: 'var(--color-bg)',
-                fontSize: '0.875rem',
-                color: 'var(--color-text)',
-              }}
+              className="admin-search-input"
             />
           </div>
         </div>
@@ -423,10 +521,14 @@ export default function AdminRoomsPage() {
         filteredFloors.map((floor) => (
           <FloorSection
             key={floor.id}
+            floorId={floor.id}
             floorName={floor.name}
             floorNumber={floor.floorNumber}
             rooms={floor.rooms}
             onRoomClick={handleRoomClick}
+            onAddRoom={() => handleAddRoom(floor.id)}
+            onEditFloor={handleEditFloor}
+            onDeleteFloor={handleDeleteFloor}
           />
         ))
       )}
@@ -440,7 +542,77 @@ export default function AdminRoomsPage() {
           setActiveRoom(null);
         }}
         onStatusChange={handleStatusChange}
+        onEditRoom={handleEditRoom}
+        onDeleteRoom={handleDeleteRoom}
       />
+
+      {/* Floor CRUD Modal */}
+      <FloorModal
+        isOpen={isFloorModalOpen}
+        onClose={() => {
+          setIsFloorModalOpen(false);
+          setFloorToEdit(null);
+        }}
+        floorToEdit={floorToEdit}
+        suggestedFloorNumber={floors.length + 1}
+        onSuccess={() => fetchRooms(true)}
+      />
+
+      {/* Room CRUD Modal */}
+      <RoomModal
+        isOpen={isRoomModalOpen}
+        onClose={() => {
+          setIsRoomModalOpen(false);
+          setRoomToEdit(null);
+          setActiveFloorIdForNewRoom(undefined);
+        }}
+        roomToEdit={roomToEdit}
+        defaultFloorId={activeFloorIdForNewRoom}
+        floors={floors.map((f) => ({ id: f.id, name: f.name, floorNumber: f.floorNumber }))}
+        roomTypes={roomTypes}
+        onSuccess={() => fetchRooms(true)}
+      />
+
+      {/* Safe Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!deleteConfirm}
+        onClose={() => !isDeleting && setDeleteConfirm(null)}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', color: 'var(--color-error)' }}>
+            <Trash2 size={20} />
+            <span>Xác nhận xóa {deleteConfirm?.type === 'floor' ? 'tầng' : 'phòng'}</span>
+          </div>
+        }
+        maxWidth="440px"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <p style={{ color: 'var(--color-text)', fontSize: '0.9375rem', lineHeight: 1.5, margin: 0 }}>
+            Bạn có chắc chắn muốn xóa <strong>{deleteConfirm?.name}</strong> khỏi hệ thống không?
+            Hành động này sẽ xóa vĩnh viễn dữ liệu.
+          </p>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => setDeleteConfirm(null)}
+              disabled={isDeleting}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="md"
+              onClick={executeDelete}
+              loading={isDeleting}
+            >
+              Xác nhận xóa
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

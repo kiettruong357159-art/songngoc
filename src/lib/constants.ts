@@ -101,3 +101,6 @@ export const SERVICE_CATEGORY_LABELS: Record<string, string> = {
   FOOD: 'Đồ ăn',
   TRANSPORT: 'Thuê phương tiện',
 };
+
+/** Giới hạn an toàn số bản ghi tối đa cho các API danh sách chưa phân trang (tránh tải không giới hạn) */
+export const MAX_LIST_LIMIT = 500;

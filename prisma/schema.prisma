@@ -175,6 +175,20 @@ model Service {
   updatedAt DateTime         @updatedAt
 }
 
+/// Danh mục dịch vụ & minibar (quản lý thêm/sửa/xoá). Service.category lưu giá trị `code` của bảng này
+model ServiceCategory {
+  id        String   @id @default(cuid())
+  code      String   @unique // Mã danh mục (in hoa, không đổi sau khi tạo). Ví dụ: "MINIBAR"
+  name      String   // Tên hiển thị. Ví dụ: "Minibar đồ uống"
+  icon      String   @default("coffee") // Khoá icon: coffee, shirt, utensils, car, bed, sparkles, tag, gift
+  sortOrder Int      @default(0) // Thứ tự hiển thị (nhỏ đứng trước)
+  isActive  Boolean  @default(true) // Bật/tắt danh mục
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
 model BookingService {
   id         String   @id @default(cuid())
   bookingId  String

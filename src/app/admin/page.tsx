@@ -8,20 +8,18 @@ import {
   LogOut,
   DollarSign,
   Grid,
-  CheckCircle2,
-  AlertTriangle,
-  Clock,
-  Sparkles,
   ArrowRight,
-  UserPlus,
+  UserPlus
 } from 'lucide-react';
 import { formatVND, formatDateVN } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { BOOKING_STATUS_META, BookingStatus } from '@/lib/constants';
+import { useToast } from '@/context/ToastContext';
 
 export default function AdminDashboardPage() {
+  const { showToast } = useToast();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,9 +30,12 @@ export default function AdminDashboardPage() {
         const json = await res.json();
         if (json.success) {
           setData(json.data);
+        } else {
+          showToast(json.error || 'Không thể tải dữ liệu tổng quan', 'error');
         }
       } catch (err) {
         console.error(err);
+        showToast('Lỗi kết nối máy chủ', 'error');
       } finally {
         setLoading(false);
       }
@@ -90,20 +91,11 @@ export default function AdminDashboardPage() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           flexWrap: 'wrap',
           gap: '1rem',
         }}
       >
-        <div>
-          <h1 className="serif-heading" style={{ fontSize: '1.85rem', color: 'var(--color-primary)' }}>
-            Tổng Quan Điều Hành Homestay Song Ngọc
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-            Theo dõi công suất phòng, lượt khách nhận/trả và tình trạng vận hành theo thời gian thực.
-          </p>
-        </div>
-
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <Link href="/admin/checkin">
             <Button variant="primary" size="md" leftIcon={<UserPlus size={16} />}>

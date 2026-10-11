@@ -86,3 +86,109 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+/**
+ * POST /api/admin/rooms
+ * Tạo phòng mới thuộc một tầng và một hạng phòng
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+    const session = token ? verifySessionToken(token) : null;
+    const authCheck = requirePermission(session, 'rooms:view');
+    if (!authCheck.authorized) {
+      return NextResponse.json({ success: false, error: authCheck.error }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const roomNumber = typeof body.roomNumber === 'string' ? body.roomNumber.trim() : '';
+    const floorId = typeof body.floorId === 'string' ? body.floorId.trim() : '';
+    const roomTypeId = typeof body.roomTypeId === 'string' ? body.roomTypeId.trim() : '';
+    const note = typeof body.note === 'string' ? body.note.trim() : null;
+
+    if (!roomNumber) {
+      return NextResponse.json({ success: false, error: 'Số phòng không được để trống' }, { status: 400 });
+    }
+
+    if (!floorId) {
+      return NextResponse.json({ success: false, error: 'Vui lòng chọn tầng cho phòng' }, { status: 400 });
+    }
+
+    if (!roomTypeId) {
+      return NextResponse.json({ success: false, error: 'Vui lòng chọn hạng phòng' }, { status: 400 });
+    }
+
+    // 1. Kiểm tra tầng tồn tại
+    const floor = await db.floor.findUnique({
+      where: { id: floorId },
+    });
+    if (!floor) {
+      return NextResponse.json({ success: false, error: 'Tầng đã chọn không tồn tại' }, { status: 400 });
+    }
+
+    // 2. Kiểm tra hạng phòng tồn tại
+    const roomType = await db.roomType.findUnique({
+      where: { id: roomTypeId },
+    });
+    if (!roomType) {
+      return NextResponse.json({ success: false, error: 'Hạng phòng đã chọn không tồn tại' }, { status: 400 });
+    }
+
+    // 3. Kiểm tra số phòng không được trùng lặp
+    const existingRoom = await db.room.findUnique({
+      where: { roomNumber },
+    });
+    if (existingRoom) {
+      return NextResponse.json(
+        { success: false, error: `Số phòng ${roomNumber} đã tồn tại trong hệ thống` },
+        { status: 400 }
+      );
+    }
+
+    // 4. Tạo phòng
+    const newRoom = await db.room.create({
+      data: {
+        roomNumber,
+        floorId,
+        roomTypeId,
+        note: note || null,
+        status: 'AVAILABLE',
+      },
+      include: {
+        roomType: true,
+        floor: true,
+      },
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: `Đã tạo phòng ${newRoom.roomNumber} thành công`,
+        room: {
+          id: newRoom.id,
+          roomNumber: newRoom.roomNumber,
+          status: newRoom.status,
+          note: newRoom.note,
+          roomType: {
+            id: newRoom.roomType.id,
+            name: newRoom.roomType.name,
+            slug: newRoom.roomType.slug,
+            basePrice: newRoom.roomType.basePrice,
+            bedType: newRoom.roomType.bedType,
+          },
+          floor: {
+            id: newRoom.floor.id,
+            name: newRoom.floor.name,
+            floorNumber: newRoom.floor.floorNumber,
+          },
+          currentBooking: null,
+        },
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('Error creating room:', error);
+    return NextResponse.json({ success: false, error: 'Lỗi máy chủ khi tạo phòng mới' }, { status: 500 });
+  }
+}
+

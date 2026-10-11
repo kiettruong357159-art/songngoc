@@ -2,21 +2,17 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Coffee, 
-  Shirt, 
-  Utensils, 
-  Car, 
   Plus, 
   Minus, 
   Trash2, 
-  CheckCircle, 
-  Clock,
+  CheckCircle,
   Sparkles
 } from 'lucide-react';
-import { formatVND, formatDateVN } from '@/lib/utils';
-import { SERVICE_CATEGORY_LABELS, SERVICE_CATEGORIES } from '@/lib/constants';
+import { formatVND  } from '@/lib/utils';
 import Button from '@/components/ui/Button';
 import { useToast } from '@/context/ToastContext';
+import { useServiceCategories } from '@/hooks/useServiceCategories';
+import { ServiceCategoryIcon } from '@/components/admin/ServiceCategoryIcon';
 
 interface ServiceItem {
   id: string;
@@ -47,11 +43,10 @@ interface ServiceSelectorProps {
 
 export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
   bookingId,
-  roomNumber,
   onSuccess,
-  onClose,
 }) => {
   const { showToast } = useToast();
+  const { categories } = useServiceCategories(true);
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -181,20 +176,9 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'MINIBAR':
-        return <Coffee size={16} />;
-      case 'LAUNDRY':
-        return <Shirt size={16} />;
-      case 'FOOD':
-        return <Utensils size={16} />;
-      case 'TRANSPORT':
-        return <Car size={16} />;
-      default:
-        return <Coffee size={16} />;
-    }
-  };
+  const getCategoryIcon = (code: string) => (
+    <ServiceCategoryIcon icon={categories.find((c) => c.code === code)?.icon} size={16} />
+  );
 
   if (loading) {
     return (
@@ -226,7 +210,9 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
           Tất cả ({services.length})
         </button>
 
-        {Object.entries(SERVICE_CATEGORY_LABELS).map(([catKey, label]) => {
+        {categories.map((cat) => {
+          const catKey = cat.code;
+          const label = cat.name;
           const count = services.filter((s) => s.category === catKey).length;
           return (
             <button

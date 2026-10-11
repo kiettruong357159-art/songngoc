@@ -5,10 +5,15 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "prisma generate && next build",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && tsx scripts/setup-hooks.ts",
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
+    "check:rules": "tsx scripts/verify-code-rules.ts",
+    "check:types": "tsc --noEmit",
+    "verify": "npm run check:rules && npm run check:types && npm test",
+    "pre-push": "npm run verify && npm run build",
+    "prepare:hooks": "tsx scripts/setup-hooks.ts",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:seed": "tsx prisma/seed.ts"
@@ -18,7 +23,8 @@
     "lucide-react": "^0.475.0",
     "next": "^15.2.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/node": "^20.17.19",

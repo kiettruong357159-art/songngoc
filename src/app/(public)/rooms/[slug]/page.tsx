@@ -10,16 +10,10 @@ import {
   Bed,
   Maximize2,
   Users,
-  Wifi,
-  Tv,
-  Wind,
-  Droplets,
-  Calendar,
   Check,
   ShieldCheck,
   ArrowRight,
-  Clock,
-  Sparkles,
+  Sparkles
 } from 'lucide-react';
 
 interface RoomDetailPageProps {

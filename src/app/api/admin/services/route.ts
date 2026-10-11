@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifySessionToken, SESSION_COOKIE_NAME, requirePermission } from '@/lib/auth';
+import { CreateServiceSchema } from '@/lib/validation/schemas';
+import { MAX_LIST_LIMIT } from '@/lib/constants';
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,6 +28,7 @@ export async function GET(request: NextRequest) {
     const services = await db.service.findMany({
       where,
       orderBy: [{ category: 'asc' }, { name: 'asc' }],
+      take: MAX_LIST_LIMIT,
     });
 
     return NextResponse.json({ success: true, services });
@@ -45,14 +48,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, category, price, unit, isActive = true } = body;
+    const parsed = CreateServiceSchema.safeParse(body);
 
-    if (!name || !category || price === undefined || !unit) {
+    if (!parsed.success) {
       return NextResponse.json(
         { success: false, error: 'Vui lòng điền đầy đủ tên, danh mục, đơn giá và đơn vị tính' },
         { status: 400 }
       );
     }
+
+    const { name, category, price, unit, isActive } = parsed.data;
 
     const newService = await db.service.create({
       data: {
