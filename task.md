@@ -28,3 +28,9 @@
 - [x] Task 23: Chốt chặn Anti-double submit & Edge CDN Caching Headers
 - [x] Task 24: UX Resilience - Global 0ms Skeleton Shimmer & Safe Error Boundary
 - [x] Task 25: Kiểm thử toàn diện, Type Check & Nghiệm thu sản phẩm
+
+## Phase 3: Nâng cấp Toàn diện theo Quy chuẩn Mới (Edge Security, Image Resiliency & Tailored Skeletons)
+- [x] Task 26: Edge Middleware (src/middleware.ts) & Chống FOUC (< 5ms redirect HTTP 307 cho /admin)
+- [x] Task 27: System-Wide Image Resiliency (placeholder-room.svg & SafeImage.tsx với onError fallback)
+- [x] Task 28: Per-Page Tailored Skeleton System (loading.tsx theo từng route, SkeletonBox, AdminDashboardSkeleton, RoomCardSkeleton)
+- [x] Task 29: Kiểm thử tích hợp toàn diện, Type Check & Production Build Verification

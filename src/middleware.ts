@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { SESSION_COOKIE_NAME } from './lib/auth';
+
+const SESSION_COOKIE_NAME = 'songngoc_session';
 
 /**
  * Edge Middleware kiểm soát bảo mật và chống FOUC (< 5ms)
