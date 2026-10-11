@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { db } from '@/lib/db';
+import { Metadata } from 'next';
+import { getCachedRoomTypeBySlug } from '@/lib/cached-queries';
 import { formatVND } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -24,12 +25,30 @@ interface RoomDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateMetadata({ params }: RoomDetailPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const roomType = await getCachedRoomTypeBySlug(slug);
+
+  if (!roomType) {
+    return {
+      title: 'Hạng Phòng Không Tồn Tại | Homestay Song Ngọc',
+    };
+  }
+
+  return {
+    title: `${roomType.name} | Homestay Song Ngọc Phan Thiết`,
+    description: roomType.description.slice(0, 160),
+    openGraph: {
+      title: `${roomType.name} - Giá từ ${formatVND(roomType.basePrice)}/đêm`,
+      description: roomType.description.slice(0, 160),
+    },
+  };
+}
+
 export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
   const { slug } = await params;
 
-  const roomType = await db.roomType.findUnique({
-    where: { slug },
-  });
+  const roomType = await getCachedRoomTypeBySlug(slug);
 
   if (!roomType) {
     notFound();
