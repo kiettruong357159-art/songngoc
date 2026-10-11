@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { getCachedRoomTypeBySlug } from '@/lib/cached-queries';
 import { formatVND } from '@/lib/utils';
+import { SafeImage } from '@/components/ui/SafeImage';
 import { Badge } from '@/components/ui/Badge';
 import {
   Bed,
@@ -114,13 +115,21 @@ export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
             <div
               key={idx}
               style={{
-                height: idx === 0 ? '380px' : '380px',
-                backgroundImage: `url(${img})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
+                position: 'relative',
+                height: '380px',
                 borderRadius: 'var(--radius-md)',
+                overflow: 'hidden',
               }}
-            />
+            >
+              <SafeImage
+                src={img}
+                alt={`${roomType.name} - Ảnh ${idx + 1}`}
+                fill
+                style={{ objectFit: 'cover' }}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority={idx === 0}
+              />
+            </div>
           ))}
         </div>
 

@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { formatVND } from '@/lib/utils';
 import { getRoomTypeAvailability } from '@/lib/availability';
 import { FloatingBookingBar } from '@/components/booking/FloatingBookingBar';
+import { SafeImage } from '@/components/ui/SafeImage';
 import { Badge } from '@/components/ui/Badge';
 import { Bed, Maximize2, Users, Wifi, ArrowRight, Eye, Check } from 'lucide-react';
 
@@ -154,11 +155,16 @@ export default async function RoomsPage({ searchParams }: RoomsPageProps) {
                     style={{
                       height: '320px',
                       position: 'relative',
-                      backgroundImage: `url(${images[0]})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
+                      overflow: 'hidden',
                     }}
                   >
+                    <SafeImage
+                      src={images[0]}
+                      alt={roomType.name}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
                     <div
                       style={{
                         position: 'absolute',
@@ -166,6 +172,7 @@ export default async function RoomsPage({ searchParams }: RoomsPageProps) {
                         left: '1rem',
                         display: 'flex',
                         gap: '0.5rem',
+                        zIndex: 1,
                       }}
                     >
                       {isAvailable ? (
