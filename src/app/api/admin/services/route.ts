@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const activeOnly = searchParams.get('activeOnly') === 'true';
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (category && category !== 'ALL') {
       where.category = category;
     }

@@ -60,12 +60,14 @@ export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
   let images: string[] = [];
   let amenities: string[] = [];
   try {
-    images = JSON.parse(roomType.images);
+    const p = JSON.parse(roomType.images);
+    images = Array.isArray(p) ? p : ['https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80'];
   } catch {
     images = ['https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80'];
   }
   try {
-    amenities = JSON.parse(roomType.amenities);
+    const p = JSON.parse(roomType.amenities);
+    amenities = Array.isArray(p) ? p : ['wifi', 'air_con', 'tv_smart', 'hot_water'];
   } catch {
     amenities = ['wifi', 'air_con', 'tv_smart', 'hot_water'];
   }

@@ -2,6 +2,45 @@
 import { PrismaClient } from '@prisma/client';
 
 /**
+ * Batch availability for many roomTypes in 2 queries (1 room count groupBy + 1 booking count groupBy)
+ */
+export async function getBatchAvailability(
+  db: PrismaClient,
+  roomTypeIds: string[],
+  checkIn: Date,
+  checkOut: Date
+): Promise<Map<string, AvailabilityCheckResult>> {
+  if (roomTypeIds.length === 0) return new Map();
+  const [roomGroups, bookingGroups] = await Promise.all([
+    db.room.groupBy({
+      by: ['roomTypeId'],
+      where: { roomTypeId: { in: roomTypeIds }, status: { not: 'MAINTENANCE' } },
+      _count: true,
+    }),
+    db.booking.groupBy({
+      by: ['roomTypeId'],
+      where: {
+        roomTypeId: { in: roomTypeIds },
+        status: { in: ['CONFIRMED', 'CHECKED_IN'] },
+        checkIn: { lt: checkOut },
+        checkOut: { gt: checkIn },
+      },
+      _count: true,
+    }),
+  ]);
+  const totalById = new Map(roomGroups.map((g: any) => [g.roomTypeId, g._count]));
+  const bookedById = new Map(bookingGroups.map((g: any) => [g.roomTypeId, g._count]));
+  const result = new Map<string, AvailabilityCheckResult>();
+  for (const id of roomTypeIds) {
+    const totalRooms = totalById.get(id) ?? 0;
+    const bookedCount = bookedById.get(id) ?? 0;
+    const availableCount = checkRoomTypeAvailability(totalRooms, bookedCount);
+    result.set(id, { roomTypeId: id, totalRooms, bookedCount, availableCount, isAvailable: availableCount > 0 });
+  }
+  return result;
+}
+
+/**
  * Kiểm tra xem 2 khoảng thời gian [startA, endA) và [startB, endB) có bị giao thoa (overlap) hay không.
  * Khách trả phòng lúc 12:00 ngày X và khách mới nhận phòng lúc 14:00 cùng ngày X KHÔNG tính là overlap.
  */

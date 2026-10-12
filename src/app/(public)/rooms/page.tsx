@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { formatVND } from '@/lib/utils';
-import { getRoomTypeAvailability } from '@/lib/availability';
+import { getBatchAvailability } from '@/lib/availability';
 import { FloatingBookingBar } from '@/components/booking/FloatingBookingBar';
 import { SafeImage } from '@/components/ui/SafeImage';
 import { Badge } from '@/components/ui/Badge';
@@ -38,16 +38,9 @@ export default async function RoomsPage({ searchParams }: RoomsPageProps) {
     orderBy: { basePrice: 'asc' },
   });
 
-  // Tính số phòng khả dụng cho từng loại phòng theo ngày
-  const roomTypesWithAvailability = await Promise.all(
-    roomTypes.map(async (rt) => {
-      const avail = await getRoomTypeAvailability(db, rt.id, checkInDate, checkOutDate);
-      return {
-        ...rt,
-        availability: avail,
-      };
-    })
-  );
+  // Batch availability: 2 queries total instead of 2*N
+  const batch = await getBatchAvailability(db, roomTypes.map((r) => r.id), checkInDate, checkOutDate);
+  const roomTypesWithAvailability = roomTypes.map((rt) => ({ ...rt, availability: batch.get(rt.id) || { availableCount: 0, isAvailable: false } }));
 
   return (
     <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '5rem' }}>

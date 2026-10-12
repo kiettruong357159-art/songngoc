@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getRoomTypeAvailability } from '@/lib/availability';
+import { getRoomTypeAvailability, getBatchAvailability } from '@/lib/availability';
 
 const EDGE_CACHE_HEADERS = {
   'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
@@ -38,15 +38,8 @@ export async function GET(request: NextRequest) {
       select: { id: true, name: true, slug: true },
     });
 
-    const results = await Promise.all(
-      roomTypes.map(async (rt) => {
-        const avail = await getRoomTypeAvailability(db, rt.id, checkIn, checkOut);
-        return {
-          ...rt,
-          ...avail,
-        };
-      })
-    );
+    const batch = await getBatchAvailability(db, roomTypes.map((r) => r.id), checkIn, checkOut);
+    const results = roomTypes.map((rt) => ({ ...rt, ...(batch.get(rt.id) as any) }));
 
     return NextResponse.json(
       { success: true, data: results },

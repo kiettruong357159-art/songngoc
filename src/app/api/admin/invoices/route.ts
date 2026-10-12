@@ -19,12 +19,12 @@ export async function GET(request: NextRequest) {
     const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '10', 10)));
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (paymentMethod && paymentMethod !== 'ALL') {
       where.paymentMethod = paymentMethod;
     }
     if (search) {
-      where.OR = [
+      (where as any).OR = [
         { invoiceCode: { contains: search } },
         { booking: { bookingCode: { contains: search } } },
         { booking: { guest: { fullName: { contains: search } } } },

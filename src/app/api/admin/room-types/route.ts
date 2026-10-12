@@ -1,21 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifySessionToken, SESSION_COOKIE_NAME, requirePermission } from '@/lib/auth';
-
-/**
- * Chuyển đổi tên tiếng Việt thành slug thân thiện URL
- */
-function generateSlug(text: string): string {
-  return text
-    .toString()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]+/g, '')
-    .replace(/--+/g, '-');
-}
+import { toSlug } from '@/lib/slug';
 
 export async function GET(request: NextRequest) {
   try {
@@ -80,8 +66,8 @@ export async function POST(request: NextRequest) {
 
     // Tự sinh slug nếu không truyền
     const finalSlug = (slug && typeof slug === 'string' && slug.trim())
-      ? generateSlug(slug.trim())
-      : generateSlug(name.trim());
+      ? toSlug(slug.trim())
+      : toSlug(name.trim());
 
     // Kiểm tra trùng lặp slug
     const existing = await db.roomType.findUnique({
@@ -168,7 +154,7 @@ export async function PATCH(request: NextRequest) {
     // Nếu có đổi slug, kiểm tra trùng lặp
     let finalSlug: string | undefined = undefined;
     if (slug && typeof slug === 'string' && slug.trim()) {
-      finalSlug = generateSlug(slug.trim());
+      finalSlug = toSlug(slug.trim());
       const duplicate = await db.roomType.findFirst({
         where: {
           slug: finalSlug,

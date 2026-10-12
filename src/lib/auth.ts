@@ -3,6 +3,9 @@ import crypto from 'crypto';
 
 export const SESSION_COOKIE_NAME = 'songngoc_session';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'songngoc-secret-salt-key-hmac-sha256-2026';
+const PBKDF2_ITERATIONS = 60000;
+const PBKDF2_KEYLEN = 64;
+const PBKDF2_DIGEST = 'sha512';
 
 export interface SessionPayload {
   userId: string;
@@ -19,7 +22,7 @@ export interface SessionPayload {
  */
 export function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16).toString('hex');
-  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, PBKDF2_KEYLEN, PBKDF2_DIGEST).toString('hex');
   return `${salt}:${hash}`;
 }
 
@@ -34,12 +37,20 @@ export function verifyPassword(password: string, storedHash: string): boolean {
   if (!salt || !originalHash) {
     return false;
   }
-  const hashToVerify = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
-  try {
-    return crypto.timingSafeEqual(Buffer.from(hashToVerify, 'hex'), Buffer.from(originalHash, 'hex'));
-  } catch {
-    return false;
-  }
+
+  // Try current iterations first; if mismatch length/verify fails, fallback to legacy 1000
+  const tryVerify = (iters: number) => {
+    const h = crypto.pbkdf2Sync(password, salt, iters, PBKDF2_KEYLEN, PBKDF2_DIGEST).toString('hex');
+    try {
+      return crypto.timingSafeEqual(Buffer.from(h, 'hex'), Buffer.from(originalHash, 'hex'));
+    } catch {
+      return false;
+    }
+  };
+  if (tryVerify(PBKDF2_ITERATIONS)) return true;
+  // Fallback for hashes created before iteration upgrade (allows seamless rotation)
+  if (tryVerify(1000)) return true;
+  return false;
 }
 
 /**

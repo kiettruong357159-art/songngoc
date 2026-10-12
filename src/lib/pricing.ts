@@ -34,16 +34,17 @@ export interface InvoiceSettlementResult {
 }
 
 /**
- * Tính số đêm giữa ngày nhận và trả phòng (tối thiểu 1 đêm)
+ * Tính số đêm giữa ngày nhận và trả phòng (tối thiểu 1 đêm) — DST-safe: dùng calendar days.
  */
 export function calculateNights(checkIn: Date | string, checkOut: Date | string): number {
   const dIn = typeof checkIn === 'string' ? new Date(checkIn) : checkIn;
   const dOut = typeof checkOut === 'string' ? new Date(checkOut) : checkOut;
-
-  // Tính chênh lệch thời gian theo ngày
-  const timeDiff = dOut.getTime() - dIn.getTime();
-  const rawNights = Math.round(timeDiff / (1000 * 60 * 60 * 24));
-
+  if (isNaN(dIn.getTime()) || isNaN(dOut.getTime())) return 1;
+  // Normalize to local calendar day (UTC-normalized via date-fns style diff would ideal; fallback ceil)
+  const start = new Date(dIn.getFullYear(), dIn.getMonth(), dIn.getDate());
+  const end = new Date(dOut.getFullYear(), dOut.getMonth(), dOut.getDate());
+  const diffMs = end.getTime() - start.getTime();
+  const rawNights = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
   return Math.max(1, rawNights);
 }
 

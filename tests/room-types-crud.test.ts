@@ -42,7 +42,7 @@ describe('Room Types CRUD & Image Management', () => {
     );
     expect(routeContent).toContain('export async function POST');
     expect(routeContent).toContain('export async function PATCH');
-    expect(routeContent).toContain('generateSlug');
+    expect(routeContent).toContain('toSlug');
     expect(routeContent).toContain('images');
     expect(routeContent).toContain('amenities');
   });

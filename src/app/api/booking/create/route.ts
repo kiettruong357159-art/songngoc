@@ -57,9 +57,10 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizeIso = (str: string, defaultTime: string) => {
-      if (!str.includes('T')) return `${str}T${defaultTime}Z`;
-      if (str.length === 16) return `${str}:00Z`;
-      if (str.length === 19) return `${str}Z`;
+      // Use Asia/Ho_Chi_Minh +07:00 to avoid UTC off-by-half-day on Date parsing
+      if (!str.includes('T')) return `${str}T${defaultTime}+07:00`;
+      if (str.length === 16) return `${str}:00+07:00`;
+      if (str.length === 19) return `${str}+07:00`;
       return str;
     };
 

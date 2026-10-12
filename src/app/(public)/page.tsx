@@ -14,13 +14,15 @@ export default async function HomePage() {
   try {
     roomTypes = await db.roomType.findMany({
       where: { isActive: true },
-      include: {
-        rooms: {
-          where: { status: { not: 'MAINTENANCE' } },
-        },
+      select: {
+        id: true, name: true, slug: true, basePrice: true, weekendPrice: true, hourlyPrice: true,
+        maxAdults: true, maxChildren: true, bedType: true, roomArea: true, amenities: true, images: true, description: true,
+        _count: { select: { rooms: { where: { status: { not: 'MAINTENANCE' } } } } },
       },
       orderBy: { basePrice: 'asc' },
     });
+    // normalize _count to rooms length for existing UI
+    roomTypes = roomTypes.map((rt: any) => ({ ...rt, rooms: Array(rt._count.rooms).fill({}) }));
   } catch (error) {
     console.error('Error fetching room types:', error);
   }
