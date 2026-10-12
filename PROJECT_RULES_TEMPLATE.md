@@ -205,6 +205,24 @@
 * **`Cache-Control` đặt theo độ "tươi" cần thiết của từng endpoint**, không dùng 1 số cho tất cả: endpoint có đếm ngược/suất bán (Flash Sale active) dùng `s-maxage=10, stale-while-revalidate=59` kèm `serverTime` để client tự canh giờ; danh sách ít đổi mới dùng `s-maxage=60`. Trang ISR dùng `export const revalidate = 60`.
 * Envelope trả về thống nhất `ActionResponse<T>` / `PaginatedResponse<T>` + helper `successResponse` / `errorResponse` tại `src/lib/types/api.ts`.
 
+### 18. Kỷ luật Thông Báo, Hộp Thoại Xác Nhận & Bộ Chọn Thời Gian (Sonner, Radix Confirm & React Day Picker)
+* **Tuyệt đối cấm dùng các thành phần nguyên thủy của trình duyệt**:
+  - Không dùng `alert()` hoặc `window.confirm()` thô sơ vì làm khóa luồng JavaScript, không có style thương hiệu và không hỗ trợ bẫy tiêu điểm (focus trap) / Accessibility.
+  - Không dùng thẻ HTML `<input type="date">` hay `<input type="datetime-local">` trần trụi vì hiển thị không nhất quán giữa các hệ điều hành (Windows, iOS, macOS, Android), khó căn chỉnh layout và không hỗ trợ định dạng tiếng Việt.
+* **Chuẩn Thông Báo (Toasts - `sonner`)**:
+  - Sử dụng thư viện `sonner` chuẩn công nghiệp của Shadcn UI / Vercel.
+  - Hỗ trợ xếp chồng (card stacking), vuốt để đóng (swipe-to-dismiss), phong cách kính mờ cao cấp, tích hợp icon trạng thái tự động (`success`, `error`, `warning`, `info`).
+  - Toàn bộ ứng dụng bọc qua `ToastProvider` để đảm bảo gọi thông báo nhất quán qua `useToast()` hoặc `toast.success()`.
+* **Chuẩn Hộp Thoại Xác Nhận (Confirm Dialog - `@radix-ui/react-alert-dialog`)**:
+  - Mọi thao tác nguy hiểm (Xóa bản ghi, hủy kích hoạt, đổi trạng thái) bắt buộc phải qua `ConfirmDialog` chuẩn WAI-ARIA.
+  - Bắt buộc có lớp kính mờ (Backdrop Blur `backdrop-filter: blur(6px)`), hiệu ứng trượt phóng to mượt mà (`radix-content-show`).
+  - Tự động bẫy tiêu điểm vào nút **"Hủy bỏ"** khi mở dialog để người dùng không vô tình ấn Enter xóa nhầm dữ liệu.
+  - Nút xác nhận phải hiển thị biểu tượng xoay `Loader2` và bị khóa (`disabled`) khi đang gửi request (`loading`).
+* **Chuẩn Bộ Chọn Ngày & Giờ (Datetime Picker - `react-day-picker` v10 + `date-fns`)**:
+  - Hỗ trợ đầy đủ ngôn ngữ tiếng Việt (`vi` locale từ `date-fns/locale`).
+  - Render Popover qua **React Portal (`createPortal(..., document.body)`)** để tuyệt đối không bị cắt cụt bởi các khối container cha có `overflow: hidden` hoặc `overflow: auto`.
+  - Hỗ trợ linh hoạt cả 2 chế độ: `mode="date"` (chỉ chọn ngày) và `mode="datetime"` (lịch bên trái + cột preset khung giờ tiêu chuẩn bên phải).
+
 ---
 
 ## 🚀 PHẦN II: HẠ TẦNG CLOUD SERVERLESS & EDGE (MODERN INFRASTRUCTURE)
@@ -734,6 +752,122 @@ Thay vì hiển thị các dòng text thô như *"Đang tải dữ liệu..."* h
 - `<AdminTableSkeleton rows={6} />`: Khung bảng dữ liệu quản trị với header và các hàng xen kẽ.
 - `<AdminDashboardSkeleton />`: Khung tải cổng admin khi đang xác thực session người dùng.
 
+### 4. Kiến Trúc Bộ Ba Thư Viện UI Cao Cấp (Boutique Luxury UI Stack)
+
+> **Tiêu chuẩn vàng**: Để ứng dụng đạt đẳng cấp Boutique sang trọng, mượt mà và thân thiện với người dùng Việt Nam, toàn bộ hệ thống sử dụng bộ 3 thư viện chuẩn mực nhất của hệ sinh thái React 19 + Next.js 15:
+
+#### A. Hệ thống Thông báo Xếp tầng (Toasts Notification) với `sonner`
+* **Ưu điểm**:
+  - Hỗ trợ xếp chồng (card stacking), vuốt để đóng (swipe-to-dismiss), phong cách kính mờ cao cấp, tích hợp icon trạng thái tự động (`success`, `error`, `warning`, `info`).
+  - Hỗ trợ thanh tiến trình thời gian, hành động phụ (Action button, Undo) và thời gian tự ẩn tùy biến.
+* **Cấu trúc Adapter Pattern (`src/context/ToastContext.tsx`)**:
+  Bọc `<Toaster />` của `sonner` bên trong Context Provider để giữ 100% khả năng tương thích với code cũ gọi `const { showToast, success, error } = useToast()`, đồng thời cho phép import trực tiếp `import { toast } from 'sonner'`.
+```tsx
+// src/context/ToastContext.tsx
+'use client';
+
+import React, { createContext, useContext, useCallback } from 'react';
+import { Toaster, toast } from 'sonner';
+
+export { toast };
+
+interface ToastContextValue {
+  showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
+  success: (message: string) => void;
+  error: (message: string) => void;
+  info: (message: string) => void;
+  warning: (message: string) => void;
+}
+
+const ToastContext = createContext<ToastContextValue | undefined>(undefined);
+
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const showToast = useCallback((message: string, type = 'info') => {
+    if (type === 'success') toast.success(message);
+    else if (type === 'error') toast.error(message);
+    else if (type === 'warning') toast.warning(message);
+    else toast.info(message);
+  }, []);
+
+  return (
+    <ToastContext.Provider value={{
+      showToast,
+      success: (msg) => toast.success(msg),
+      error: (msg) => toast.error(msg),
+      info: (msg) => toast.info(msg),
+      warning: (msg) => toast.warning(msg),
+    }}>
+      {children}
+      <Toaster
+        position="top-right"
+        richColors
+        closeButton
+        expand
+        duration={3500}
+        theme="light"
+      />
+    </ToastContext.Provider>
+  );
+};
+```
+
+#### B. Hộp Thoại Xác Nhận An Toàn (Confirm Dialog) với `@radix-ui/react-alert-dialog`
+* **Vấn đề giải quyết**: Thay thế toàn bộ `window.confirm()` thô sơ hoặc các modal xác nhận xóa viết rời rạc tại từng trang.
+* **Chuẩn WAI-ARIA & UX**:
+  - Focus trap tự động bắt tiêu điểm vào nút **"Hủy bỏ"** khi mở hộp thoại, ngăn chặn việc người dùng vô tình bấm `Enter` xác nhận xóa nhầm dữ liệu.
+  - Hỗ trợ phím `Esc` để đóng, click outside (khi không trong trạng thái loading).
+  - Khóa nút và hiển thị spinner xoay (`Loader2`) khi API đang thực thi (`loading`).
+  - Hỗ trợ 3 biến thể màu sắc nhận diện: `danger` (hành động xóa dữ liệu nguy hiểm), `warning` (cảnh báo tác động), `info` (xác nhận cập nhật).
+* **CSS Animation & Glassmorphism Backdrop (`src/app/globals.css`)**:
+```css
+@keyframes radix-overlay-show {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes radix-content-show {
+  from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.radix-alert-overlay {
+  background-color: rgba(10, 48, 54, 0.48);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  animation: radix-overlay-show 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.radix-alert-content {
+  background-color: var(--color-surface, #ffffff);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 20px 30px -10px rgba(10, 48, 54, 0.25), 0 10px 15px -5px rgba(0, 0, 0, 0.08);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 92vw;
+  max-width: 480px;
+  max-height: 85vh;
+  padding: 1.5rem;
+  z-index: 10001;
+  animation: radix-content-show 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--color-border);
+}
+```
+
+#### C. Bộ Chọn Ngày & Giờ Cao Cấp (Datetime & Date Picker) với `react-day-picker` v10 + `date-fns`
+* **Vấn đề giải quyết**: Triệt tiêu hoàn toàn thẻ `<input type="date">` và `<input type="datetime-local">` thô sơ của trình duyệt.
+* **Đặc tính kỹ thuật cốt lõi**:
+  - **Bản địa hóa tiếng Việt 100%**: Sử dụng `vi` locale từ `date-fns/locale` (Thứ Hai, Thứ Ba... Tháng Một, Tháng Hai...).
+  - **Portal Popover chống tràn viền**: Toàn bộ panel chọn lịch và giờ được render qua `createPortal(..., document.body)` với `position: fixed` và tự động tính tọa độ qua `getBoundingClientRect()`. Khi không đủ chỗ bên dưới màn hình, popover tự lật lên trên (`openUp`), không bao giờ bị cắt cụt bởi container có `overflow: hidden`.
+  - **Hỗ trợ 2 chế độ linh hoạt (`mode`)**:
+    1. `mode="date"` (`<DatePicker />`): Chỉ hiển thị lịch chọn ngày gọn gàng, tự động đóng popover ngay sau khi chọn. Dùng cho thanh tìm kiếm nhanh, bộ lọc ngày hoặc quầy lễ tân.
+    2. `mode="datetime"` (`<DateTimePicker />`): Bố cục chia đôi (Split Grid): Lịch bên trái + Cột chọn khung giờ tiêu chuẩn (Preset Times: 14:00 nhận phòng, 12:00 trả phòng...) bên phải kèm ô nhập giờ chính xác. Dùng cho luồng đặt phòng, đặt lịch dịch vụ.
+  - **Tương thích chuẩn HTML**: Hỗ trợ đồng thời cả prop `minDate` và prop alias `min` (`min="YYYY-MM-DD"`) để tương thích tối đa với form HTML và các test suite.
+
 ---
 
 ## 🔒 PHẦN VIII: XÁC THỰC, PHÂN QUYỀN RBAC & BẢO MẬT
@@ -880,3 +1014,4 @@ Khi sao chép file này sang dự án mới làm CORE:
 - [ ] 19. Thống kê/dashboard dùng `aggregate`/`count`/`groupBy` + `Promise.all`; chống N+1 bằng `findMany({ in })` + `Map`; tuyệt đối không bịa số liệu hiển thị.
 - [ ] 20. Middleware Edge chỉ là hàng rào UX (không verify chữ ký); mọi API vẫn tự kiểm tra role. Client dùng `router.replace` + màn hình "đang kiểm tra quyền".
 - [ ] 21. Chọn 1 màn hình admin làm chuẩn (golden reference); mọi Manager khác phải cùng format, một hành động chỉ xuất hiện một chỗ.
+- [ ] 22. Chuẩn hóa bộ ba thư viện UI cao cấp: Thông báo Sonner (xếp tầng, cử chỉ vuốt), Hộp thoại xác nhận Radix ConfirmDialog (bẫy tiêu điểm, kính mờ), Bộ chọn ngày giờ React Day Picker + date-fns (tiếng Việt, portal chống tràn viền). Tuyệt đối không dùng alert/confirm hay input date mặc định của trình duyệt.

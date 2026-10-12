@@ -14,6 +14,7 @@ import { formatVND, calculateNights } from '@/lib/utils';
 import { calculateBookingPricing } from '@/lib/pricing';
 import CustomSelect, { SelectOption } from '@/components/ui/CustomSelect';
 import Button from '@/components/ui/Button';
+import { DatePicker } from '@/components/ui/DateTimePicker';
 import { useToast } from '@/context/ToastContext';
 
 interface RoomTypeOption {
@@ -438,19 +439,12 @@ function CheckinFormContent() {
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
                     Ngày nhận phòng
                   </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     required
                     value={checkIn}
-                    onChange={(e) => setCheckIn(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem 0.75rem',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-bg)',
-                      color: 'var(--color-text)',
-                    }}
+                    onChange={(val) => setCheckIn(val)}
+                    placeholder="Chọn ngày nhận..."
+                    type="checkIn"
                   />
                 </div>
 
@@ -458,20 +452,13 @@ function CheckinFormContent() {
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.35rem' }}>
                     Ngày trả phòng
                   </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     required
-                    min={checkIn}
+                    minDate={checkIn}
                     value={checkOut}
-                    onChange={(e) => setCheckOut(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem 0.75rem',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-bg)',
-                      color: 'var(--color-text)',
-                    }}
+                    onChange={(val) => setCheckOut(val)}
+                    placeholder="Chọn ngày trả..."
+                    type="checkOut"
                   />
                 </div>
               </div>

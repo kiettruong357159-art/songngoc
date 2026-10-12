@@ -40,7 +40,9 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    if (checkInStr < todayStr) {
+    const checkInDatePart = checkInStr.includes('T') ? checkInStr.split('T')[0] : checkInStr;
+
+    if (checkInDatePart < todayStr) {
       return NextResponse.json(
         { success: false, error: 'Ngày nhận phòng không thể trong quá khứ' },
         { status: 400 }
@@ -54,8 +56,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const checkIn = new Date(`${checkInStr}T14:00:00Z`);
-    const checkOut = new Date(`${checkOutStr}T12:00:00Z`);
+    const normalizeIso = (str: string, defaultTime: string) => {
+      if (!str.includes('T')) return `${str}T${defaultTime}Z`;
+      if (str.length === 16) return `${str}:00Z`;
+      if (str.length === 19) return `${str}Z`;
+      return str;
+    };
+
+    const checkIn = new Date(normalizeIso(checkInStr, '14:00:00'));
+    const checkOut = new Date(normalizeIso(checkOutStr, '12:00:00'));
 
     if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime())) {
       return NextResponse.json(

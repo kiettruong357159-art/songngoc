@@ -7,12 +7,11 @@ import {
   Search,
   Edit,
   Trash2,
-  AlertTriangle,
   CheckCircle2,
   EyeOff,
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import CustomSelect, { SelectOption } from '@/components/ui/CustomSelect';
 import { Pagination } from '@/components/ui/Pagination';
 import AmenityModal, { AmenityData } from '@/components/admin/AmenityModal';
@@ -443,49 +442,27 @@ export default function AdminAmenitiesPage() {
         onSuccess={() => fetchAmenities(true)}
       />
 
-      {/* Modal Xác nhận Xóa An Toàn */}
-      {deleteTarget && (
-        <Modal
-          isOpen={Boolean(deleteTarget)}
-          onClose={() => {
-            if (!deleting) setDeleteTarget(null);
-          }}
-          title="Xác nhận xóa tiện nghi"
-          maxWidth="440px"
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--color-error)' }}>
-              <AlertTriangle size={24} />
-              <div style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--color-text)' }}>
-                Xóa tiện nghi &ldquo;{deleteTarget.name}&rdquo;?
-              </div>
-            </div>
-
-            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.5 }}>
+      {/* Hộp Thoại Xác Nhận Xóa Cao Cấp */}
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open && !deleting) setDeleteTarget(null);
+        }}
+        variant="danger"
+        title={deleteTarget ? `Xóa tiện nghi "${deleteTarget.name}"?` : 'Xác nhận xóa'}
+        description={
+          deleteTarget ? (
+            <span>
               Hành động này sẽ xóa vĩnh viễn tiện nghi <strong>{deleteTarget.name}</strong> (mã <code>{deleteTarget.code}</code>) khỏi hệ thống quản lý. Các hạng phòng đang dùng mã này có thể sẽ không hiển thị biểu tượng tương ứng nữa.
-            </p>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
-              <Button
-                variant="outline"
-                onClick={() => setDeleteTarget(null)}
-                disabled={deleting}
-              >
-                Hủy bỏ
-              </Button>
-              <Button
-                variant="danger"
-                onClick={handleDeleteConfirm}
-                disabled={deleting}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}
-              >
-                <Trash2 size={16} />
-                <span>{deleting ? 'Đang xóa...' : 'Xác nhận xóa'}</span>
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
+            </span>
+          ) : null
+        }
+        confirmText="Xác nhận xóa"
+        cancelText="Hủy bỏ"
+        loading={deleting}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

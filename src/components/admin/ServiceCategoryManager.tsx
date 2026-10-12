@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/context/ToastContext';
 import { ServiceCategoryIcon } from '@/components/admin/ServiceCategoryIcon';
 import {
@@ -60,13 +61,14 @@ export const ServiceCategoryManager: React.FC<ServiceCategoryManagerProps> = ({
   const [sortOrder, setSortOrder] = useState(0);
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ServiceCategoryItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
       setShowForm(false);
       setEditing(null);
-      setConfirmDeleteId(null);
+      setDeleteTarget(null);
     } else if (isFallback) {
       showToast(
         'Đang hiển thị danh mục mặc định. Cần tạo bảng ServiceCategory và nạp 4 danh mục mặc định trong database trước khi thêm, sửa hoặc xoá.',
@@ -151,15 +153,17 @@ export const ServiceCategoryManager: React.FC<ServiceCategoryManagerProps> = ({
     }
   };
 
-  const handleDelete = async (category: ServiceCategoryItem) => {
-    setConfirmDeleteId(null);
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/service-categories?id=${encodeURIComponent(category.id)}`, {
+      const res = await fetch(`/api/admin/service-categories?id=${encodeURIComponent(deleteTarget.id)}`, {
         method: 'DELETE',
       });
       const data = await res.json();
       if (data.success) {
-        showToast('Đã xoá danh mục', 'success');
+        showToast(`Đã xoá danh mục "${deleteTarget.name}"`, 'success');
+        setDeleteTarget(null);
         onChanged();
       } else {
         showToast(data.error || 'Xoá danh mục thất bại', 'error');
@@ -167,10 +171,13 @@ export const ServiceCategoryManager: React.FC<ServiceCategoryManagerProps> = ({
     } catch (err) {
       console.error(err);
       showToast('Lỗi kết nối', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
   return (
+    <>
     <Modal isOpen={isOpen} onClose={onClose} title="Quản Lý Danh Mục Dịch Vụ" maxWidth="640px">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {!showForm && (
@@ -227,46 +234,33 @@ export const ServiceCategoryManager: React.FC<ServiceCategoryManagerProps> = ({
                       </td>
                       <td style={{ padding: '0.6rem 0.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.4rem' }}>
-                          {confirmDeleteId === category.id ? (
-                            <>
-                              <Button variant="danger" size="sm" onClick={() => handleDelete(category)}>
-                                Xác nhận xoá
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => setConfirmDeleteId(null)}>
-                                Hủy
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={isDefaultServiceCategoryId(category.id)}
-                                onClick={() => handleOpenEdit(category)}
-                                style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                              >
-                                <Edit2 size={13} />
-                                <span>Sửa</span>
-                              </Button>
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                disabled={isDefaultServiceCategoryId(category.id)}
-                                onClick={() => handleToggleActive(category)}
-                              >
-                                {category.isActive ? 'Tắt' : 'Bật'}
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={isDefaultServiceCategoryId(category.id)}
-                                onClick={() => setConfirmDeleteId(category.id)}
-                                style={{ display: 'flex', alignItems: 'center', color: 'var(--color-error)' }}
-                              >
-                                <Trash2 size={13} />
-                              </Button>
-                            </>
-                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isDefaultServiceCategoryId(category.id)}
+                            onClick={() => handleOpenEdit(category)}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                          >
+                            <Edit2 size={13} />
+                            <span>Sửa</span>
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={isDefaultServiceCategoryId(category.id)}
+                            onClick={() => handleToggleActive(category)}
+                          >
+                            {category.isActive ? 'Tắt' : 'Bật'}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isDefaultServiceCategoryId(category.id)}
+                            onClick={() => setDeleteTarget(category)}
+                            style={{ display: 'flex', alignItems: 'center', color: 'var(--color-error)' }}
+                          >
+                            <Trash2 size={13} />
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -375,6 +369,28 @@ export const ServiceCategoryManager: React.FC<ServiceCategoryManagerProps> = ({
         )}
       </div>
     </Modal>
+
+    <ConfirmDialog
+      open={Boolean(deleteTarget)}
+      onOpenChange={(open) => {
+        if (!open && !deleting) setDeleteTarget(null);
+      }}
+      variant="danger"
+      title={deleteTarget ? `Xóa danh mục "${deleteTarget.name}"?` : 'Xác nhận xóa'}
+      description={
+        deleteTarget ? (
+          <span>
+            Hành động này sẽ xóa danh mục <strong>{deleteTarget.name}</strong> (mã <code>{deleteTarget.code}</code>). Các dịch vụ thuộc danh mục này có thể cần được phân loại lại.
+          </span>
+        ) : null
+      }
+      confirmText="Xác nhận xóa"
+      cancelText="Hủy bỏ"
+      loading={deleting}
+      onConfirm={handleDeleteConfirm}
+      onCancel={() => setDeleteTarget(null)}
+    />
+    </>
   );
 };
 

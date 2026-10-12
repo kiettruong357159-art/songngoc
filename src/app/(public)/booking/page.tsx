@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Phone, User, Mail, CreditCard, QrCode, ShieldCheck, ArrowRight } from 'lucide-react';
 import { CustomSelect, SelectOption } from '@/components/ui/CustomSelect';
+import { DateTimePicker } from '@/components/ui/DateTimePicker';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/context/ToastContext';
 import { formatVND } from '@/lib/utils';
@@ -56,11 +57,21 @@ function BookingFormContent() {
     }
     loadData();
 
-    // Default dates from query or fallback
+    // Default dates and times from query or fallback
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
     const dayAfter = new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0];
-    setCheckIn(searchParams.get('checkIn') || tomorrow);
-    setCheckOut(searchParams.get('checkOut') || dayAfter);
+    const rawCheckIn = searchParams.get('checkIn');
+    const rawCheckOut = searchParams.get('checkOut');
+
+    const defaultCheckIn = rawCheckIn
+      ? (rawCheckIn.includes('T') ? rawCheckIn : `${rawCheckIn}T14:00`)
+      : `${tomorrow}T14:00`;
+    const defaultCheckOut = rawCheckOut
+      ? (rawCheckOut.includes('T') ? rawCheckOut : `${rawCheckOut}T12:00`)
+      : `${dayAfter}T12:00`;
+
+    setCheckIn(defaultCheckIn);
+    setCheckOut(defaultCheckOut);
     setAdults(searchParams.get('adults') || '2');
     setChildren(searchParams.get('children') || '0');
   }, [searchParams]);
@@ -198,7 +209,7 @@ function BookingFormContent() {
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Nguyễn Văn A"
+                    placeholder="Họ và tên của bạn"
                     style={{
                       width: '100%',
                       padding: '0.625rem 0.875rem 0.625rem 2.25rem',
@@ -276,45 +287,34 @@ function BookingFormContent() {
                 />
               </div>
 
-              {/* Dates */}
-              <div className="responsive-input-pair">
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.375rem' }}>
-                    Nhận phòng (14:00)
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={checkIn}
-                    onChange={(e) => setCheckIn(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem 0.875rem',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.375rem' }}>
-                    Trả phòng (12:00)
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={checkOut}
-                    min={checkIn}
-                    onChange={(e) => setCheckOut(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem 0.875rem',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
+              {/* Dates & Times: Bố cục full-width chống tràn viền, hiển thị trọn vẹn thứ, ngày, tháng, năm & giờ */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <DateTimePicker
+                  label="Thời gian nhận phòng (tiêu chuẩn từ 14:00)"
+                  type="checkIn"
+                  required
+                  value={checkIn}
+                  onChange={(val) => {
+                    setCheckIn(val);
+                    if (!checkOut || checkOut <= val) {
+                      const nextDate = new Date(val);
+                      nextDate.setDate(nextDate.getDate() + 1);
+                      const dStr = nextDate.toISOString().split('T')[0];
+                      setCheckOut(`${dStr}T12:00`);
+                    }
+                  }}
+                  minDate={new Date()}
+                  placeholder="Chọn thời gian nhận phòng..."
+                />
+                <DateTimePicker
+                  label="Thời gian trả phòng (tiêu chuẩn trước 12:00)"
+                  type="checkOut"
+                  required
+                  value={checkOut}
+                  minDate={checkIn}
+                  onChange={(val) => setCheckOut(val)}
+                  placeholder="Chọn thời gian trả phòng..."
+                />
               </div>
 
               {/* Guests */}
@@ -388,9 +388,14 @@ function BookingFormContent() {
                   <span style={{ color: 'var(--color-text-muted)' }}>Hạng phòng:</span>
                   <span style={{ fontWeight: 600 }}>{selectedRoomType ? selectedRoomType.name : 'Chưa chọn'}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Thời gian:</span>
-                  <span style={{ fontWeight: 600 }}>{nights} đêm ({checkIn} → {checkOut})</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '0.875rem', gap: '0.75rem' }}>
+                  <span style={{ color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>Thời gian:</span>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 600 }}>{nights} đêm</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '0.125rem' }}>
+                      {checkIn.replace('T', ' ')} → {checkOut.replace('T', ' ')}
+                    </div>
+                  </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
                   <span style={{ color: 'var(--color-text-muted)' }}>Đơn giá:</span>

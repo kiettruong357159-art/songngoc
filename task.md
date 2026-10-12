@@ -91,4 +91,31 @@
 - [x] Task 65: Xóa bỏ khối footer "Đang đăng nhập / Vai trò" ở cuối `AdminSidebar.tsx` (thông tin này đã có đầy đủ ở góc trên bên phải của `AdminHeader.tsx`).
 - [x] Task 66: Chạy kiểm thử xác nhận `npm run verify` (`check:rules`, `check:types`, `vitest run`).
 
+## Phase 13: Sửa Lỗi Hiển Thị Dấu '/' Khi Tải Trang Chi Tiết Hạng Phòng
+- [x] Task 67: Loại bỏ 2 thẻ `<span>/</span>` text thuần trong Skeleton Breadcrumbs ở `src/app/(public)/rooms/[slug]/loading.tsx`, đồng bộ layout flexbox và khoảng cách chuẩn CLS = 0 với `page.tsx`.
+- [x] Task 68: Bổ sung kiểm thử hồi quy trong `tests/tailored-skeletons.test.ts`, kiểm tra Type Check & Code Rules Verification.
+
+## Phase 14: Cập Nhật Form Đặt Phòng - Chọn Ngày Giờ (datetime-local) & Placeholder Họ Tên
+- [x] Task 69: Nâng cấp input ngày nhận/trả phòng sang `type="datetime-local"`, mặc định 14:00 (nhận) và 12:00 (trả), cập nhật placeholder họ tên thành "Họ và tên của bạn", format ngày giờ hiển thị ở sidebar tóm tắt.
+- [x] Task 70: Cập nhật backend `POST /api/booking/create` hỗ trợ parse linh hoạt cả định dạng datetime-local lẫn date-only, bổ sung unit test trong `tests/booking-creation.test.ts` & `tests/booking-concurrency.test.ts`, nghiệm thu toàn diện (`check:rules`, `check:types`, `vitest`).
+- [x] Task 71: Khắc phục lỗi tràn viền (overflow/clipping) khi 2 input datetime-local đặt chung trong 2 cột hẹp bằng cách chuyển sang bố cục 1 cột full width, chống cắt cụt label & nút lịch, căn chỉnh hiển thị ngày giờ trong sidebar tóm tắt.
+
+## Phase 15: Nâng Cấp Bộ Chọn Ngày & Giờ Cao Cấp (Boutique Shadcn UI react-day-picker)
+- [x] Task 72: Cài đặt và tích hợp `react-day-picker` v10 + `date-fns` (tiếng Việt `vi`), xây dựng component [src/components/ui/DateTimePicker.tsx](file:///c:/Users/MSI%20RAIDER%20GE76/Documents/Project/songngoc/src/components/ui/DateTimePicker.tsx) với Popover Portal chống tràn viền, panel split chọn lịch + khung giờ dự kiến.
+- [x] Task 73: Đồng bộ CSS tokens trong `globals.css` (màu ngọc `--color-primary`, bo góc 8px, font chuẩn thương hiệu), cập nhật form `/booking`, nghiệm thu toàn diện (`check:rules`, `check:types`, `vitest`).
+
+## Phase 16: Chuẩn Hóa Thư Viện UI Cao Cấp (Sonner Toasts, Radix Confirm Dialogs & React Day Picker)
+- [x] Task 74: Cài đặt và tích hợp `sonner` cho hệ thống thông báo: cấu hình `<Toaster />` với tokens Song Ngọc, đồng bộ `ToastContext.tsx` giữ tương thích 100% các lệnh gọi cũ `useToast()`.
+- [x] Task 75: Cài đặt `@radix-ui/react-alert-dialog`, xây dựng component `ConfirmDialog.tsx` chuẩn accessibility, thay thế toàn bộ popup confirm xóa thô sơ ở `/admin/amenities`, `/admin/room-types`, `/admin/rooms`, `ServiceCategoryManager`.
+- [x] Task 76: Nâng cấp `DateTimePicker.tsx` hỗ trợ cả mode `date` và `datetime`, thay thế các `<input type="date">` còn sót lại ở `FloatingBookingBar.tsx` và `/admin/checkin/page.tsx`.
+- [x] Task 77: Kiểm thử toàn diện `npm run verify` (`check:rules`, `check:types`, `vitest run`) đảm bảo 0 lỗi type, 0 vi phạm rule, và giao diện đồng bộ hoàn hảo.
+
+## Phase 17: Khắc Phục Lỗi Tràn Viền Bộ Chọn Thời Gian Form Đặt Phòng
+- [x] Task 78: Chuyển 2 trường thời gian nhận/trả phòng trong form `/booking` sang bố cục 1 cột full width, bổ sung `minWidth: 0` và `minmax(0, 1fr)` trong `globals.css` và `DateTimePicker.tsx`, triệt tiêu hoàn toàn lỗi cắt cụt label & nút lịch.
+
+
+
+
+
+
 

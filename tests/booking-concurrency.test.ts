@@ -67,4 +67,26 @@ describe('Task 2: Backend Concurrency & Validation Guards', () => {
     expect(json.success).toBe(false);
     expect(json.error).toContain('tối đa 30 ngày');
   });
+
+  it('accepts datetime-local strings with hours and minutes for check-in and check-out', async () => {
+    const roomType = await db.roomType.findFirst({ where: { isActive: true } });
+
+    const req = new NextRequest('http://localhost:3000/api/booking/create', {
+      method: 'POST',
+      body: JSON.stringify({
+        fullName: 'Khách Hàng Test',
+        phone: '0912345678',
+        roomTypeId: roomType!.id,
+        checkIn: '2026-11-10T14:00',
+        checkOut: '2026-11-12T12:00',
+        paymentMethod: 'COUNTER',
+      }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+    expect(res.status).toBe(200);
+    expect(json.success).toBe(true);
+    expect(json.data.bookingCode).toMatch(/^BK-/);
+  });
 });

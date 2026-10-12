@@ -21,11 +21,12 @@ describe('Task 28: Per-Page Tailored Skeleton System & Blueprint Wireframes', ()
     expect(content).toContain('RoomCardSkeleton');
   });
 
-  it('has route-specific loading.tsx for /rooms/[slug] detail', () => {
+  it('has route-specific loading.tsx for /rooms/[slug] detail without raw breadcrumb slashes', () => {
     const filePath = path.resolve(process.cwd(), 'src/app/(public)/rooms/[slug]/loading.tsx');
     expect(fs.existsSync(filePath)).toBe(true);
     const content = fs.readFileSync(filePath, 'utf-8');
     expect(content).toContain('gallery');
+    expect(content).not.toContain('>/<');
   });
 
   it('has route-specific loading.tsx for /booking checkout', () => {

@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, AlertTriangle, X } from 'lucide-react';
 
-export type ToastType = 'success' | 'error' | 'info';
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 export interface ToastItem {
   id: string;
@@ -23,6 +23,8 @@ export const Toast: React.FC<ToastProps> = ({ toast, onClose }) => {
         return <CheckCircle2 size={18} style={{ color: 'var(--color-room-available)' }} />;
       case 'error':
         return <AlertCircle size={18} style={{ color: 'var(--color-room-occupied)' }} />;
+      case 'warning':
+        return <AlertTriangle size={18} style={{ color: 'var(--color-accent)' }} />;
       case 'info':
       default:
         return <Info size={18} style={{ color: 'var(--color-primary)' }} />;
@@ -35,6 +37,8 @@ export const Toast: React.FC<ToastProps> = ({ toast, onClose }) => {
         return 'var(--color-room-available-border)';
       case 'error':
         return 'var(--color-room-occupied-border)';
+      case 'warning':
+        return 'var(--color-accent)';
       case 'info':
       default:
         return 'var(--color-border)';
@@ -56,6 +60,8 @@ export const Toast: React.FC<ToastProps> = ({ toast, onClose }) => {
             ? 'var(--color-room-available)'
             : toast.type === 'error'
             ? 'var(--color-room-occupied)'
+            : toast.type === 'warning'
+            ? 'var(--color-accent)'
             : 'var(--color-primary)'
         }`,
         borderColor: getBorderColor(),

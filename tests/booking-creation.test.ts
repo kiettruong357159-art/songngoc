@@ -28,5 +28,11 @@ describe('Booking Creation & Tracking Spec', () => {
     expect(fs.existsSync(trackPath)).toBe(true);
     expect(fs.existsSync(createApiPath)).toBe(true);
     expect(fs.existsSync(trackApiPath)).toBe(true);
+    const pickerPath = path.resolve(__dirname, '../src/components/ui/DateTimePicker.tsx');
+    expect(fs.existsSync(pickerPath)).toBe(true);
+
+    const bookingContent = fs.readFileSync(bookingPath, 'utf-8');
+    expect(bookingContent).toContain('DateTimePicker');
+    expect(bookingContent).toContain('placeholder="Họ và tên của bạn"');
   });
 });

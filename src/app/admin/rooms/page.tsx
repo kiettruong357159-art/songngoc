@@ -6,15 +6,14 @@ import {
   AlertCircle,
   Search,
   Plus,
-  Layers,
-  Trash2
+  Layers
 } from 'lucide-react';
 import { RoomData } from '@/components/pms/RoomCard';
 import FloorSection from '@/components/pms/FloorSection';
 import QuickActionModal from '@/components/pms/QuickActionModal';
 import FloorModal from '@/components/admin/FloorModal';
 import RoomModal from '@/components/admin/RoomModal';
-import Modal from '@/components/ui/Modal';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import CustomSelect, { SelectOption } from '@/components/ui/CustomSelect';
 import { RoomStatus, ROOM_STATUS_META } from '@/lib/constants';
 import { useToast } from '@/context/ToastContext';
@@ -560,46 +559,27 @@ export default function AdminRoomsPage() {
         onSuccess={() => fetchRooms(true)}
       />
 
-      {/* Safe Delete Confirmation Modal */}
-      <Modal
-        isOpen={!!deleteConfirm}
-        onClose={() => !isDeleting && setDeleteConfirm(null)}
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', color: 'var(--color-error)' }}>
-            <Trash2 size={20} />
-            <span>Xác nhận xóa {deleteConfirm?.type === 'floor' ? 'tầng' : 'phòng'}</span>
-          </div>
+      {/* Hộp Thoại Xác Nhận Xóa Cao Cấp */}
+      <ConfirmDialog
+        open={Boolean(deleteConfirm)}
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) setDeleteConfirm(null);
+        }}
+        variant="danger"
+        title={deleteConfirm ? `Xác nhận xóa ${deleteConfirm.type === 'floor' ? 'tầng' : 'phòng'}?` : 'Xác nhận xóa'}
+        description={
+          deleteConfirm ? (
+            <span>
+              Bạn có chắc chắn muốn xóa <strong>{deleteConfirm.name}</strong> khỏi hệ thống không? Hành động này sẽ xóa vĩnh viễn dữ liệu và không thể hoàn tác.
+            </span>
+          ) : null
         }
-        maxWidth="440px"
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <p style={{ color: 'var(--color-text)', fontSize: '0.9375rem', lineHeight: 1.5, margin: 0 }}>
-            Bạn có chắc chắn muốn xóa <strong>{deleteConfirm?.name}</strong> khỏi hệ thống không?
-            Hành động này sẽ xóa vĩnh viễn dữ liệu.
-          </p>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              onClick={() => setDeleteConfirm(null)}
-              disabled={isDeleting}
-            >
-              Hủy
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              size="md"
-              onClick={executeDelete}
-              loading={isDeleting}
-            >
-              Xác nhận xóa
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        confirmText="Xác nhận xóa"
+        cancelText="Hủy bỏ"
+        loading={isDeleting}
+        onConfirm={executeDelete}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }

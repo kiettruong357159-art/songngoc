@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Calendar, Users, Search } from 'lucide-react';
 import { CustomSelect, SelectOption } from '../ui/CustomSelect';
 import { Button } from '../ui/Button';
+import { DatePicker } from '../ui/DateTimePicker';
 
 export interface FloatingBookingBarProps {
   initialCheckIn?: string;
@@ -120,24 +121,15 @@ export const FloatingBookingBar: React.FC<FloatingBookingBarProps> = ({
             <Calendar size={15} />
             Ngày nhận phòng
           </label>
-          <input
+          <DatePicker
             id="checkInInput"
-            name="checkIn"
-            type="date"
             value={checkIn}
             min={todayStr}
-            onChange={(e) => handleCheckInChange(e.target.value)}
+            minDate={todayStr}
+            onChange={(val) => handleCheckInChange(val)}
+            type="checkIn"
+            placeholder="Chọn ngày nhận..."
             required
-            style={{
-              padding: '0.625rem 0.875rem',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-bg)',
-              color: 'var(--color-text)',
-              fontWeight: 500,
-              outline: 'none',
-              width: '100%',
-            }}
           />
         </div>
 
@@ -157,24 +149,15 @@ export const FloatingBookingBar: React.FC<FloatingBookingBarProps> = ({
             <Calendar size={15} />
             Ngày trả phòng
           </label>
-          <input
+          <DatePicker
             id="checkOutInput"
-            name="checkOut"
-            type="date"
             value={checkOut}
             min={getMinCheckOut()}
-            onChange={(e) => setCheckOut(e.target.value)}
+            minDate={getMinCheckOut()}
+            onChange={(val) => setCheckOut(val)}
+            type="checkOut"
+            placeholder="Chọn ngày trả..."
             required
-            style={{
-              padding: '0.625rem 0.875rem',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-bg)',
-              color: 'var(--color-text)',
-              fontWeight: 500,
-              outline: 'none',
-              width: '100%',
-            }}
           />
         </div>
 

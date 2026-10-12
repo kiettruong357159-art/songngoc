@@ -11,12 +11,11 @@ import {
   Search,
   Plus,
   Trash2,
-  Camera,
-  AlertTriangle
+  Camera
 } from 'lucide-react';
 import { formatVND } from '@/lib/utils';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import CustomSelect, { SelectOption } from '@/components/ui/CustomSelect';
 import SafeImage from '@/components/ui/SafeImage';
 import RoomTypeModal, { RoomTypeFormData } from '@/components/admin/RoomTypeModal';
@@ -471,70 +470,48 @@ export default function AdminRoomTypesPage() {
         roomType={selectedRoomType}
       />
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={Boolean(deleteConfirm)}
-        onClose={() => setDeleteConfirm(null)}
-        title="Xác Nhận Xóa Hạng Phòng"
-        maxWidth="460px"
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--color-error)' }}>
-            <AlertTriangle size={24} />
-            <span style={{ fontWeight: 700, fontSize: '1rem' }}>
-              Bạn có chắc chắn muốn xóa hạng phòng này?
-            </span>
-          </div>
-
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-text)', lineHeight: 1.5 }}>
-            Hạng phòng: <strong>{deleteConfirm?.name}</strong>
-          </p>
-
-          {deleteConfirm && deleteConfirm.roomCount > 0 ? (
-            <div
-              style={{
-                padding: '0.75rem 1rem',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.25)',
-                fontSize: '0.8125rem',
-                color: 'var(--color-error)',
-                lineHeight: 1.4,
-              }}
-            >
-              ⚠️ Cảnh báo: Hiện có <strong>{deleteConfirm.roomCount} phòng thực tế</strong> đang thuộc hạng phòng này. Hệ thống sẽ từ chối xóa vì ràng buộc an toàn dữ liệu. Bạn hãy chọn &quot;Tạm ngưng kinh doanh&quot; thay vì xóa.
+      {/* Hộp Thoại Xác Nhận Xóa Cao Cấp */}
+      <ConfirmDialog
+        open={Boolean(deleteConfirm)}
+        onOpenChange={(open) => {
+          if (!open && !deleting) setDeleteConfirm(null);
+        }}
+        variant="danger"
+        title={deleteConfirm ? `Xóa hạng phòng "${deleteConfirm.name}"?` : 'Xác nhận xóa'}
+        description={
+          deleteConfirm ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text)' }}>
+                Hạng phòng: <strong>{deleteConfirm.name}</strong> ({deleteConfirm.roomCount} phòng liên kết).
+              </p>
+              {deleteConfirm.roomCount > 0 ? (
+                <div
+                  style={{
+                    padding: '0.625rem 0.875rem',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    fontSize: '0.8125rem',
+                    color: 'var(--color-error)',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  ⚠️ Cảnh báo: Hiện có <strong>{deleteConfirm.roomCount} phòng thực tế</strong> đang thuộc hạng phòng này. Hệ thống sẽ từ chối xóa vì ràng buộc an toàn dữ liệu. Bạn hãy chọn &ldquo;Tạm ngưng kinh doanh&rdquo; thay vì xóa.
+                </div>
+              ) : (
+                <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+                  Lưu ý: Hành động này không thể hoàn tác sau khi đã xóa khỏi cơ sở dữ liệu.
+                </p>
+              )}
             </div>
-          ) : (
-            <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
-              Lưu ý: Hành động này không thể hoàn tác sau khi đã xóa khỏi cơ sở dữ liệu.
-            </p>
-          )}
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.75rem' }}>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setDeleteConfirm(null)}
-              disabled={deleting}
-            >
-              Hủy
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              loading={deleting}
-              onClick={handleConfirmDelete}
-              style={{
-                backgroundColor: 'var(--color-error)',
-                borderColor: 'var(--color-error)',
-                color: '#ffffff',
-              }}
-            >
-              Xác nhận xóa
-            </Button>
-          </div>
-        </div>
-      </Modal>
+          ) : null
+        }
+        confirmText="Xác nhận xóa"
+        cancelText="Hủy bỏ"
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }
