@@ -186,9 +186,14 @@
 * **Tuyệt đối không bịa số liệu hiển thị** (VD doanh thu danh mục = `số sản phẩm * 320000`, biểu đồ 7 ngày nhân hệ số cố định). Số giả chỉ được phép khi gắn nhãn rõ "dữ liệu mẫu"; còn lại phải tính thật từ DB (`groupBy` trên `orderItem`).
 * Mọi tối ưu hiệu năng phải có test song hành (`admin-dashboard-aggregation`, `order-performance-batch`) để không bị hồi quy.
 
-### 15. Bảo vệ Route Admin: Middleware Edge là hàng rào UX, không phải bảo mật
-* Edge runtime không có `crypto` của Node nên middleware chỉ **giải mã payload (`atob`) để kiểm tra có cookie, chưa hết hạn, đúng role** rồi redirect sớm. Nó **không xác minh chữ ký** token.
-* Vì vậy **quyền thật luôn phải kiểm tra lại ở từng API** bằng `getCurrentUserFromCookie` + role. Không coi middleware là lớp bảo mật duy nhất.
+### 15. Bảo vệ Route Admin: Xác minh Chữ ký HMAC tại Edge qua WebCrypto (crypto.subtle) & Defense-in-depth
+* **Nâng cấp từ giải mã thô sang kiểm tra chữ ký chuẩn mật mã tại Edge**:
+  - Trước đây, Edge runtime không có thư viện `crypto` của Node.js nên nhiều hệ thống chỉ giải mã thô payload (`atob`) mà không kiểm tra chữ ký.
+  - **Tiêu chuẩn hiện đại**: Bắt buộc sử dụng API chuẩn W3C **WebCrypto (`crypto.subtle`)** có sẵn mặc định trên Edge Runtime (Vercel Edge, Next.js Middleware).
+  - Sử dụng `crypto.subtle.importKey` (`HMAC-SHA256`) và `crypto.subtle.verify` để kiểm tra toàn vẹn chữ ký token trong thời gian thực (< 2ms) mà không tốn tài nguyên Serverless.
+  - Token giả mạo, bị sửa đổi payload, hoặc hết hạn (`Date.now() > exp`) bị Edge Middleware chặn đứng và chuyển hướng ngay lập tức, triệt tiêu nguy cơ kẻ tấn công kích hoạt Next.js SSR hay các Serverless function tốn kém.
+* **Nguyên tắc Phòng thủ đa tầng (Defense-in-depth)**:
+  - Dù Edge Middleware đã xác minh HMAC và phân loại role sơ bộ, **mọi API Route và Server Action bắt buộc phải kiểm tra lại quyền thực tế** bằng helper `getCurrentUserFromCookie(request)` hoặc wrapper `withAuth(handler, permission)`. Tuyệt đối không coi middleware là chốt chặn bảo mật duy nhất.
 * Redirect kèm `?redirect=<đường dẫn cũ>` để login xong quay lại đúng trang; user đã đăng nhập mà vào `/admin/login` thì redirect về `/admin`; `matcher` chỉ `['/admin/:path*']`.
 * Phía client dùng `router.replace` (không `push`, tránh nút Back quay lại trang vừa bị chặn) và **trả về màn hình "Đang kiểm tra quyền truy cập..." khi `authLoading || !user || sai role`** để không nháy nội dung quản trị.
 
@@ -222,6 +227,120 @@
   - Hỗ trợ đầy đủ ngôn ngữ tiếng Việt (`vi` locale từ `date-fns/locale`).
   - Render Popover qua **React Portal (`createPortal(..., document.body)`)** để tuyệt đối không bị cắt cụt bởi các khối container cha có `overflow: hidden` hoặc `overflow: auto`.
   - Hỗ trợ linh hoạt cả 2 chế độ: `mode="date"` (chỉ chọn ngày) và `mode="datetime"` (lịch bên trái + cột preset khung giờ tiêu chuẩn bên phải).
+
+### 19. Kỷ luật Xử lý Ngày Giờ & Múi Giờ (+07:00 Asia/Ho_Chi_Minh & Calendar Days Difference)
+* **Tuyệt đối cấm parse ngày mặc định với UTC (`Z`) khi nhận input từ người dùng Việt Nam**:
+  - Khi người dùng gửi chuỗi ngày `2026-10-15` hoặc `2026-10-15T14:00`, nếu gắn đuôi `Z` (UTC) thì `new Date("2026-10-15T00:00:00Z")` khi chuyển sang giờ địa phương sẽ bị lệch 7 tiếng, hoặc nghiêm trọng hơn là `2026-10-15` ở client bị lùi về `2026-10-14T17:00:00` ngày hôm trước khi chuyển đổi múi giờ.
+  - **Chuẩn hóa chuỗi ngày giờ**: Khi chuẩn hóa chuỗi trước khi lưu CSDL hoặc so sánh thời gian, bắt buộc đính kèm tường minh offset múi giờ địa phương (`+07:00`):
+    ```typescript
+    const normalizeIso = (str: string, defaultTime: string) => {
+      // Dùng Asia/Ho_Chi_Minh +07:00 để tránh lỗi lệch ngày khi parse Date
+      if (!str.includes('T')) return `${str}T${defaultTime}+07:00`;
+      if (str.length === 16) return `${str}:00+07:00`;
+      if (str.length === 19) return `${str}+07:00`;
+      return str;
+    };
+    ```
+* **Tính số đêm / khoảng cách ngày an toàn trước DST & Múi giờ**:
+  - Không lấy trực tiếp `(dOut.getTime() - dIn.getTime()) / 86400000` rồi `Math.round()` vì có thể bị sai số khi giờ nhận và giờ trả phòng chênh lệch (ví dụ: nhận lúc 14:00 và trả lúc 11:30 chỉ cách nhau 21.5 tiếng, dễ bị làm tròn xuống 0 hoặc 1 sai lệch).
+  - Bắt buộc chuẩn hóa về **đầu ngày lịch địa phương (Calendar Days)** trước khi tính khoảng cách:
+    ```typescript
+    export function calculateNights(checkIn: Date | string, checkOut: Date | string): number {
+      const dIn = typeof checkIn === 'string' ? new Date(checkIn) : checkIn;
+      const dOut = typeof checkOut === 'string' ? new Date(checkOut) : checkOut;
+      if (isNaN(dIn.getTime()) || isNaN(dOut.getTime())) return 1;
+      
+      const start = new Date(dIn.getFullYear(), dIn.getMonth(), dIn.getDate());
+      const end = new Date(dOut.getFullYear(), dOut.getMonth(), dOut.getDate());
+      const diffMs = end.getTime() - start.getTime();
+      const rawNights = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      return Math.max(1, rawNights);
+    }
+    ```
+
+### 20. Tối ưu Truy vấn Tồn Kho & Khả Dụng: Batch GroupBy Triệt Tiêu N+1 Query
+* **Vấn đề N+1 nghiêm trọng khi kiểm tra trạng thái danh sách**:
+  - Khi hiển thị danh sách N loại phòng / sản phẩm kèm số lượng khả dụng theo ngày chọn, việc viết `Promise.all(list.map(item => checkAvailability(item.id)))` sẽ bắn ra `2 * N` câu query đồng thời xuống database. Với 10 loại phòng và 50 người dùng cùng truy cập, CSDL sẽ hứng 1.000 query/giây, gây nghẽn pool kết nối Neon/PostgreSQL.
+* **Giải pháp Batch GroupBy (O(1) Constant Queries)**:
+  - Gom toàn bộ ID danh sách (`roomTypeIds`) và thực thi đúng **2 câu query duy nhất** bằng toán tử `in` kết hợp `groupBy`:
+    1. Query 1: Đếm tổng số phòng thực tế của từng loại (bỏ qua phòng đang bảo trì `MAINTENANCE`).
+    2. Query 2: Đếm số phòng đã bị đặt có thời gian giao thoa (`checkIn < targetCheckOut && checkOut > targetCheckIn`) và trạng thái hợp lệ (`CONFIRMED`, `CHECKED_IN`).
+  - Sau đó ghép dữ liệu vào `Map<string, AvailabilityResult>`:
+    ```typescript
+    export async function getBatchAvailability(
+      db: PrismaClient,
+      roomTypeIds: string[],
+      checkIn: Date,
+      checkOut: Date
+    ): Promise<Map<string, AvailabilityCheckResult>> {
+      if (roomTypeIds.length === 0) return new Map();
+      const [roomGroups, bookingGroups] = await Promise.all([
+        db.room.groupBy({
+          by: ['roomTypeId'],
+          where: { roomTypeId: { in: roomTypeIds }, status: { not: 'MAINTENANCE' } },
+          _count: true,
+        }),
+        db.booking.groupBy({
+          by: ['roomTypeId'],
+          where: {
+            roomTypeId: { in: roomTypeIds },
+            status: { in: ['CONFIRMED', 'CHECKED_IN'] },
+            checkIn: { lt: checkOut },
+            checkOut: { gt: checkIn },
+          },
+          _count: true,
+        }),
+      ]);
+      const totalById = new Map(roomGroups.map(g => [g.roomTypeId, g._count]));
+      const bookedById = new Map(bookingGroups.map(g => [g.roomTypeId, g._count]));
+      const result = new Map<string, AvailabilityCheckResult>();
+      for (const id of roomTypeIds) {
+        const totalRooms = totalById.get(id) ?? 0;
+        const bookedCount = bookedById.get(id) ?? 0;
+        const availableCount = Math.max(0, totalRooms - bookedCount);
+        result.set(id, { roomTypeId: id, totalRooms, bookedCount, availableCount, isAvailable: availableCount > 0 });
+      }
+      return result;
+    }
+    ```
+
+### 21. Kiến Trúc DRY Tiện Ích Cốt Lõi: toSlug Tiếng Việt, Safe JSON Parser & withAuth Wrapper
+* **Bỏ mã trùng lặp (Don't Repeat Yourself - DRY) cho các tiện ích hệ thống**:
+  1. **Sinh Slug tiếng Việt chuẩn (`src/lib/slug.ts`)**:
+     - Thay vì viết lại hàm regex bỏ dấu ở từng controller (room types, categories, amenities), tập trung về hàm `toSlug(text)` dùng `normalize('NFD')` loại bỏ toàn bộ dấu thanh tiếng Việt:
+       ```typescript
+       export function toSlug(text: string): string {
+         return text.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+           .toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-');
+       }
+       ```
+  2. **Safe JSON Parser có Type Fallback (`src/lib/json.ts`)**:
+     - Cột CSDL lưu chuỗi JSON (`images`, `amenities`) rất dễ gây crash toàn bộ Server Component nếu dữ liệu rỗng, `null` hoặc chuỗi lỗi cú pháp.
+     - Luôn bọc qua `safeParseJson<T>(value, fallback)` và `safeParseJsonArray(value, fallback)` để đảm bảo giao diện luôn nhận mảng hợp lệ, không bao giờ sập trang.
+  3. **Wrapper Xác Thực Route Handler (`src/lib/with-auth.ts`)**:
+     - Sử dụng Higher-Order Function `withAuth(handler, requiredPermission)` bao bọc API Route, tự động lấy session cookie, kiểm tra `requirePermission()`, tự trả `401 Unauthorized` hoặc `403 Forbidden` chuẩn hóa. Giúp Route Handler tập trung 100% vào logic nghiệp vụ cốt lõi.
+
+### 22. Kỷ luật Chống Tràn Viền CSS Grid Responsive (minmax(0, 1fr) vs 1fr)
+* **Bản chất lỗi vỡ giao diện trong CSS Grid**:
+  - Khi chia 2 cột trong form bằng `grid-template-columns: repeat(2, 1fr)`, kích thước tối thiểu mặc định của mỗi cột là `auto` (bằng `min-content` của phần tử con).
+  - Khi nội dung con bên trong (ví dụ: nút chọn ngày giờ có icon lịch và chuỗi text dài *"13/10/2026, 14:00"*) không thể co lại nhỏ hơn nội dung của nó, hai cột sẽ đẩy nhau phình to và tràn ra ngoài card cha, gây vỡ bố cục trên thiết bị di động và tablet.
+* **Quy tắc vàng bất biến**:
+  - Luôn sử dụng `repeat(2, minmax(0, 1fr))` trên container cha thay cho `repeat(2, 1fr)`:
+    ```css
+    .responsive-input-pair {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    ```
+  - Đồng thời trên phần tử con (nút trigger, input, wrapper), bắt buộc thiết lập:
+    ```css
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    ```
+  - Phần tử chứa chữ bên trong gắn `overflow: hidden; text-overflow: ellipsis; white-space: nowrap;` để tự động hiển thị dấu `...` khi thu nhỏ màn hình thay vì đè vỡ khung hình.
 
 ---
 
@@ -911,8 +1030,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                  │
                  ▼
 ┌─────────────────────────────────┐
-│ Lớp 1: Edge Middleware (< 5ms)  │  Chưa có token hoặc không phải ADMIN?
+│ Lớp 1: Edge Middleware (< 2ms)  │  Chưa có token, token giả mạo, hoặc sai role?
 │ (src/middleware.ts)             ├─────────────────────────────────────────┐
+│ - Verify HMAC qua crypto.subtle │                                         │
 └────────────────┬────────────────┘                                         │
                  │ Hợp lệ                                                   │
                  ▼                                                          ▼
@@ -925,8 +1045,24 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 └─────────────────────────────────┘
 ```
 
-1. **Lớp 1 (Edge Middleware)**:
-   - Chặn đứng từ cổng vào, kiểm tra `session_token` tại Edge Network trước khi request chạm vào Serverless Lambda.
+1. **Lớp 1 (Edge Middleware - Xác minh Chữ ký Mật mã WebCrypto)**:
+   - Chặn đứng từ cổng vào, kiểm tra và xác minh chữ ký `session_token` tại Edge Network trước khi request chạm vào Serverless Lambda.
+   - **Xác minh chữ ký số WebCrypto (`crypto.subtle`)**: Sử dụng API chuẩn W3C WebCrypto (tương thích 100% với Edge Runtime) để verify chữ ký HMAC-SHA256 của token mà không phụ thuộc module `crypto` nặng nề của Node.js:
+     ```typescript
+     async function verifySignatureHmac(payloadB64: string, signature: string): Promise<boolean> {
+       try {
+         const enc = new TextEncoder();
+         const key = await crypto.subtle.importKey(
+           'raw', enc.encode(SESSION_SECRET),
+           { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
+         );
+         const sigBytes = Uint8Array.from(atob(signature.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (signature.length % 4)) % 4)), c => c.charCodeAt(0));
+         return await crypto.subtle.verify('HMAC', key, sigBytes.buffer, enc.encode(payloadB64));
+       } catch {
+         return false;
+       }
+     }
+     ```
    - Trả về Header chuyển hướng tức thì (Redirect HTTP 307/308).
 2. **Lớp 2 (Client/Server Guard & Skeleton Cover)**:
    - Khi trang đang trong trạng thái xác thực phiên hoặc refresh token (`isLoading`), **bắt buộc render `<AdminDashboardSkeleton />`** che phủ toàn bộ màn hình.
@@ -1012,6 +1148,11 @@ Khi sao chép file này sang dự án mới làm CORE:
 - [ ] 17. Helper session cookie hỗ trợ cả `Cookie` header lẫn `next/headers`; client chờ `authLoading`; xử lý riêng lỗi 401.
 - [ ] 18. Khai báo kiểu tường minh cho mảng rỗng được `push` sau đó (tránh lỗi chỉ xuất hiện khi build Vercel).
 - [ ] 19. Thống kê/dashboard dùng `aggregate`/`count`/`groupBy` + `Promise.all`; chống N+1 bằng `findMany({ in })` + `Map`; tuyệt đối không bịa số liệu hiển thị.
-- [ ] 20. Middleware Edge chỉ là hàng rào UX (không verify chữ ký); mọi API vẫn tự kiểm tra role. Client dùng `router.replace` + màn hình "đang kiểm tra quyền".
+- [ ] 20. Cấu hình Edge Middleware xác minh chữ ký HMAC-SHA256 bằng WebCrypto API (`crypto.subtle.verify`) trong < 2ms; kết hợp kiểm tra phân quyền tại từng API Route/Server Action (`withAuth`) theo nguyên tắc phòng thủ đa tầng. Client dùng `router.replace` + màn hình "đang kiểm tra quyền".
 - [ ] 21. Chọn 1 màn hình admin làm chuẩn (golden reference); mọi Manager khác phải cùng format, một hành động chỉ xuất hiện một chỗ.
 - [ ] 22. Chuẩn hóa bộ ba thư viện UI cao cấp: Thông báo Sonner (xếp tầng, cử chỉ vuốt), Hộp thoại xác nhận Radix ConfirmDialog (bẫy tiêu điểm, kính mờ), Bộ chọn ngày giờ React Day Picker + date-fns (tiếng Việt, portal chống tràn viền). Tuyệt đối không dùng alert/confirm hay input date mặc định của trình duyệt.
+- [ ] 23. Chuẩn hóa múi giờ Việt Nam (+07:00 Asia/Ho_Chi_Minh) cho toàn bộ chuỗi ngày giờ khi parse Date; tính khoảng cách số đêm bằng calendar days (`new Date(y, m, d)`) để triệt tiêu lỗi chênh lệch giờ và Daylight Saving Time (DST).
+- [ ] 24. Triệt tiêu 2*N query kiểm tra phòng trống/tồn kho danh sách bằng Batch GroupBy (`getBatchAvailability`), rút gọn toàn bộ luồng kiểm tra về đúng 2 câu query duy nhất (O(1) database queries).
+- [ ] 25. Tổ chức kiến trúc DRY cho các tiện ích dùng chung: sinh slug tiếng Việt chuẩn (`toSlug`), parse JSON an toàn có fallback (`safeParseJson`), và Higher-Order Function bọc xác thực API (`withAuth`).
+- [ ] 26. Thiết lập `repeat(2, minmax(0, 1fr))` kết hợp `min-width: 0`, `overflow: hidden`, `text-overflow: ellipsis` cho các cột CSS Grid responsive chứa nút/input để chống hiện tượng tràn viền làm vỡ layout trên thiết bị vừa và nhỏ.
+
